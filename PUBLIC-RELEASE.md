@@ -4,7 +4,7 @@ This repository is a clean REPLAY source snapshot. It starts new Git history so 
 
 ## Scope
 
-The application baseline is version 0.29.3, including the native authorization recovery fix. Public tests use clearly synthetic records. Historical tests that require private trial archives are isolated under `tests/private-fixtures/`; they are not part of the public default test run. That private suite requires an explicit fixture root and fails when its required inputs are unavailable.
+The application version is 0.29.4, adding confirmed native account switching, explicit external model/project configuration, and task-based interface copy. The native authorization recovery fix from 0.29.3 is retained. Public tests use clearly synthetic records. Historical tests that require private trial archives are isolated under `tests/private-fixtures/`; they are not part of the public default test run. That private suite requires an explicit fixture root and fails when its required inputs are unavailable.
 
 The source includes the deterministic engine, browser interface, native platform integration, agent and retrieval code, pinned upstream code, synthetic showcase resources, the derived catalog graph, and license notices. The graph describes supplied catalog records; it does not claim that those records were bulk-ingested into a live platform ontology.
 
@@ -14,7 +14,9 @@ Excluded material includes runtime databases, credentials, operator account reco
 
 The private 0.29.0 baseline passed 1,954 tests using its supplied private fixtures. The 0.29.3 authorization/navigation change passed 272 focused tests, typecheck, build, and a native browser check of a real cookie handoff. During authorization refusal the protected interface disappeared; after verified recovery the same exercise and Debrief selection returned.
 
-The public 0.29.3 checkout passed **1,950 tests across 137 files**, with zero failures, skips or todo tests, and passed TypeScript. The default suite used two workers and took 199.18 seconds. Five historical test files were explicitly excluded as the separate private scope; they were not counted as passing or skipped tests. All 1,259 hashed source/test/script/resource/config inputs were unchanged during that run. Later changes to public packaging and documentation are separately verified by the build and corresponding-source check. No paid model calls were made for this qualification.
+The integrated public 0.29.4 checkout passed **2,054 tests across 143 files**, with zero failures, skips or todo tests, and passed TypeScript. The suite used two workers and took 113.13 seconds. It includes the public synthetic-fixture baseline, native switch and token-admission tests, and external-model configuration/accounting tests. Five historical test files remain explicitly excluded as the separate private scope; they are not counted as passing or skipped tests. No paid model calls were made for this qualification.
+
+The native session tests include 10,001 forged-token switch requests that left the refusal store empty while legitimate login still succeeded. Bound expired/blocked sessions can request sign-out without reauthorizing protected content. Actual public-ingress two-user switching and live performance of a newly selected external model require separate deployment qualification; the source test results do not claim those are completed.
 
 ## Rebuild
 

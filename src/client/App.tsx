@@ -4,6 +4,7 @@ import { AlertTriangle, RefreshCw } from 'lucide-react';
 import type { ExerciseSummary, Overview, Side } from './api';
 import { Header, type View } from './components/Header';
 import { NativeSignIn } from './components/NativeSignIn';
+import {NativeSwitchUser} from './components/NativeSwitchUser';
 import { ExerciseView } from './views/ExerciseView';
 import { PlatformView } from './views/PlatformView';
 import {CatalogView} from './views/CatalogView';
@@ -61,6 +62,7 @@ export function App() {
   const [selectedTile, setSelectedTile] = useState<number | null>(null);
   const [pendingEvidence, setPendingEvidence] = useState<{id: string; tick?: number} | null>(null);
   const [nativeStatus, setNativeStatus] = useState<NativeStatus | null>(null);
+  const [switchRequested,setSwitchRequested]=useState(false);
 
   // Native session status is read from the backend; the client never decides identity or mode.
   const loadNative = useCallback(async () => {
@@ -158,8 +160,10 @@ export function App() {
 
   // Native mode gate: the backend refused the overview for this session (not signed in, blocked, read-only with
   // nothing to show, or platform unavailable). Shown even when an older snapshot exists, e.g. after session expiry.
+  const onSwitchUser=nativeStatus?.mode==='kamiwaza'&&nativeStatus.platformSwitchAvailable?()=>setSwitchRequested(true):undefined;
+  if(switchRequested)return <NativeSwitchUser loginUrl={nativeStatus?.platformLoginUrl} onCancel={()=>setSwitchRequested(false)} onSignedOut={reviewNavigation.reset}/>;
   if (nativeStatus?.mode === 'kamiwaza' && feed.denied) {
-    return <NativeSignIn status={nativeStatus} onChange={onAuthChange} onSignedOut={reviewNavigation.reset} denied={feed.denied} />;
+    return <NativeSignIn status={nativeStatus} onChange={onAuthChange} onSignedOut={reviewNavigation.reset} onSwitchUser={onSwitchUser} denied={feed.denied} />;
   }
 
   if (!ov || !ctx) {
@@ -200,6 +204,7 @@ export function App() {
         assignedSide={assignedSide}
         native={nativeOf(ov)}
         onSignOut={onSignOut}
+        onSwitchUser={onSwitchUser}
       />
       <main className="app-main" id="main" tabIndex={-1}>
         {view === 'showcase' && <ShowcaseView ctx={ctx}/>}

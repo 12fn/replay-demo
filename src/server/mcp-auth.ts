@@ -41,7 +41,7 @@ import {
   type WorkroomResponse,
   type WorkroomRuntimeContextResponse,
 } from "../platform/index.ts";
-import { ROLE_MAP, type NativeContext, type NativeIdentity, type ScenarioRole } from "./native-session.ts";
+import { NativeSessionError, ROLE_MAP, type NativeContext, type NativeIdentity, type ScenarioRole } from "./native-session.ts";
 
 // ---------------------------------------------------------------------------
 // Public types
@@ -60,6 +60,8 @@ export interface McpAuthOptions {
   fetchImpl?: FetchImpl;
   /** Client factory override for tests. */
   clientFactory?: (opts: KamiwazaClientOptions) => KamiwazaClient;
+  /** Installation-scoped exact-token refusal; does not replace native identity/workroom validation. */
+  assertTokenAllowed?: (token:string)=>void;
 }
 
 /** Inbound header view. Only `authorization` and `x-workroom-id` are ever read. */
@@ -140,6 +142,7 @@ export class McpBearerResolver implements McpAuthPort {
   readonly timeoutMs: number;
   private readonly fetchImpl: FetchImpl | undefined;
   private readonly clientFactory: (opts: KamiwazaClientOptions) => KamiwazaClient;
+  private readonly assertTokenAllowed:((token:string)=>void)|undefined;
 
   constructor(opts: McpAuthOptions) {
     if (!opts || typeof opts !== "object") throw new McpAuthError("invalid_request", 400, "MCP auth options are required");
@@ -154,6 +157,7 @@ export class McpBearerResolver implements McpAuthPort {
     this.forwardedProto = opts.forwardedProto ?? "https";
     this.timeoutMs = opts.timeoutMs ?? 15_000;
     this.fetchImpl = opts.fetchImpl;
+    this.assertTokenAllowed=opts.assertTokenAllowed;
     this.clientFactory = opts.clientFactory ?? ((o) => new KamiwazaClient(o));
     // Fail at construction on a malformed platform configuration, like NativeSessions does.
     this.clientFactory(this.clientOptions(() => "unused-config-probe-token"));
@@ -176,7 +180,9 @@ export class McpBearerResolver implements McpAuthPort {
   async resolve(headers: InboundHeaders): Promise<McpPrincipal> {
     const holder = { token: extractBearer(headers) };
     const secrets: (string | null | undefined)[] = [holder.token];
+    const checkToken=()=>{try{this.assertTokenAllowed?.(holder.token);}catch(err){const refused=err instanceof NativeSessionError&&err.httpStatus===401;throw new McpAuthError(refused?'token_rejected':'platform_unavailable',refused?401:503,refused?'This token was refused by REPLAY; sign in again':'Native session safety storage is unavailable');}};
     try {
+      checkToken();
       const requested = extractWorkroom(headers);
       if (requested !== this.workroomId) {
         throw new McpAuthError("workroom_mismatch", 403, requested === null ? "x-workroom-id is required and must name the workroom this REPLAY instance serves" : "x-workroom-id does not name the workroom this REPLAY instance serves");
@@ -188,6 +194,7 @@ export class McpBearerResolver implements McpAuthPort {
       let ctx;
       try {
         ctx = await client.workroomContext(this.workroomId);
+        checkToken();
       } catch (err) {
         throw this.classify(err, secrets);
       }
@@ -207,6 +214,7 @@ export class McpBearerResolver implements McpAuthPort {
       let attrsReceipt: RequestReceipt;
       try {
         const res = await client.workroom(this.workroomId);
+        checkToken();
         workroom = res.data;
         attrsReceipt = res.receipt;
         if (res.identity.userId !== subject) throw new McpAuthError("subject_mismatch", 403, "platform identity changed between signed calls", { requestId: res.receipt.requestId });

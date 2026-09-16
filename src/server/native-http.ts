@@ -36,6 +36,8 @@ import { NativeSessionError, type NativeContext, type NativeIdentity, type Nativ
 import {ServiceError, type GameService, type Identity, type Session} from "./service.ts";
 import type { ExerciseRow } from "./store.ts";
 import {TeamError} from './exercise-teams';
+import {nativeCookieExpirations,type PlatformLogoutResult} from './native-platform-logout';
+import {NativeTokenRevocations} from './native-token-revocations';
 
 // ---------------------------------------------------------------------------
 // Configuration
@@ -53,6 +55,8 @@ export interface KamiwazaConfig {
   apiBase: string;
   validationApiBase?:string;
   platformSso?:boolean;
+  /** Browser-facing native login origin; independent of the signed ForwardAuth host. */
+  loginOrigin?:string;
   workroomId: string;
   forwardedHost: string;
   forwardedProto: string;
@@ -83,6 +87,8 @@ export function readAppConfig(env: NodeJS.ProcessEnv = process.env): AppConfig {
   const workroomId = (env.REPLAY_WORKROOM_ID ?? "").trim();
   const allowedOrigins = parseOrigins(env.REPLAY_ALLOWED_ORIGINS);
   const publicOrigin=env.REPLAY_PUBLIC_ORIGIN?.trim()||undefined;
+  const loginOrigin=env.REPLAY_LOGIN_ORIGIN?.trim()||undefined;
+  if(loginOrigin)validatedLoginOrigin(loginOrigin,allowedOrigins);
   if(publicOrigin){
     let u:URL;try{u=new URL(publicOrigin);}catch{throw new NativeConfigError('REPLAY_PUBLIC_ORIGIN must be an HTTPS origin');}
     if(u.protocol!=='https:'||u.username||u.password||u.pathname!=='/'||u.search||u.hash)throw new NativeConfigError('REPLAY_PUBLIC_ORIGIN must be an HTTPS origin');
@@ -97,6 +103,7 @@ export function readAppConfig(env: NodeJS.ProcessEnv = process.env): AppConfig {
     throw new NativeConfigError("REPLAY_KAMIWAZA_API and REPLAY_WORKROOM_ID must both be set for native mode; refusing to start as local-demo with a partial native configuration");
   }
   if (!wantsNative) {
+    if(loginOrigin)throw new NativeConfigError('REPLAY_LOGIN_ORIGIN requires native authentication');
     return { mode: "local-demo", allowedOrigins, publicOrigin, cookieSecure: parseBool(env.REPLAY_COOKIE_SECURE, false) };
   }
   if (mode === "local-demo" || mode === "local") {
@@ -119,6 +126,7 @@ export function readAppConfig(env: NodeJS.ProcessEnv = process.env): AppConfig {
   return {
     mode: "kamiwaza",
     publicOrigin,
+    loginOrigin:loginOrigin?new URL(loginOrigin).origin:undefined,
     apiBase: apiBase.replace(/\/+$/, ""),
     validationApiBase:env.REPLAY_KAMIWAZA_VALIDATION_API,
     platformSso:parseBool(env.REPLAY_PLATFORM_SSO,false),
@@ -129,6 +137,21 @@ export function readAppConfig(env: NodeJS.ProcessEnv = process.env): AppConfig {
     cookieSecure: parseBool(env.REPLAY_COOKIE_SECURE, forwardedProto === "https"),
     allowLegacyRecordings: parseBool(env.REPLAY_ALLOW_LEGACY_RECORDINGS, false),
   };
+}
+
+function validatedLoginOrigin(value:string,allowedOrigins:string[]):string {
+  let url:URL;try{url=new URL(value);}catch{throw new NativeConfigError('REPLAY_LOGIN_ORIGIN must be an HTTPS origin');}
+  if(url.protocol!=='https:'||url.username||url.password||url.pathname!=='/'||url.search||url.hash)throw new NativeConfigError('REPLAY_LOGIN_ORIGIN must be an HTTPS origin');
+  if(!allowedOrigins.includes(url.origin.toLowerCase()))throw new NativeConfigError('REPLAY_LOGIN_ORIGIN must be included in REPLAY_ALLOWED_ORIGINS');
+  return url.origin;
+}
+
+/** Fixed native route accepted by Kamiwaza's same-origin login redirect policy. */
+export function nativeLoginUrl(config:KamiwazaConfig):string {
+  const origin=config.loginOrigin?validatedLoginOrigin(config.loginOrigin,config.allowedOrigins):`${config.forwardedProto}://${config.forwardedHost}`;
+  const parsed=new URL(origin);
+  if(parsed.protocol!=='https:'||parsed.username||parsed.password||parsed.pathname!=='/'||parsed.search||parsed.hash)throw new NativeConfigError('Platform SSO requires an HTTPS native login origin');
+  const url=new URL('/login',parsed.origin);url.searchParams.set('redirect','/runtime/apps/replay');return url.href;
 }
 
 function parseOrigins(raw: string | undefined): string[] {
@@ -143,7 +166,7 @@ function parseOrigins(raw: string | undefined): string[] {
     } catch {
       throw new NativeConfigError(`REPLAY_ALLOWED_ORIGINS entry is not an absolute origin: "${s}"`);
     }
-    if (u.pathname !== "/" || u.search || u.hash) throw new NativeConfigError(`REPLAY_ALLOWED_ORIGINS entry must be scheme://host[:port] only: "${s}"`);
+    if (!['http:','https:'].includes(u.protocol)||u.username||u.password||u.pathname !== "/" || u.search || u.hash) throw new NativeConfigError('REPLAY_ALLOWED_ORIGINS entry must be HTTP(S) scheme://host[:port] without credentials, path, query or fragment');
     out.push(u.origin.toLowerCase());
   }
   return out;
@@ -168,6 +191,8 @@ export interface NativeSessionPort {
   resolve(sessionId: string, opts?: ResolveOptions): Promise<NativeResolved>;
   metadata(sessionId: string): NativeSessionMetadata;
   logout(sessionId: string): void;
+  /** Native revocation and qualified expiration headers; no credentials are returned to the client. */
+  logoutPlatform?(cookieHeader:string):Promise<PlatformLogoutResult>;
 }
 
 /** Public, serializable view of a resolved native session placed on `res.locals.native`. */
@@ -388,6 +413,8 @@ export function createApp(opts: CreateAppOptions): express.Express {
 
   const platformSso=config.mode==='kamiwaza'&&config.platformSso===true;
   if(platformSso&&(!native?.acceptPlatformSession||!config.cookieSecure))throw new NativeConfigError('Platform SSO requires native session validation and secure cookies');
+  const platformLoginUrl=platformSso&&config.mode==='kamiwaza'?nativeLoginUrl(config):undefined;
+  const revokedTokens=platformSso?new NativeTokenRevocations(service.store.db,now):null;
   const platformToken=(req:express.Request):string|null=>{
     const entries=(req.headers.cookie??'').split(';').map(s=>s.trim()).filter(s=>s.startsWith('access_token='));
     if(entries.length!==1)return null;
@@ -395,14 +422,16 @@ export function createApp(opts: CreateAppOptions): express.Express {
     return value.length<=16384&&/^[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$/.test(value)?value:null;
   };
   const tokenHash=(token:string)=>createHash('sha256').update(token).digest('hex');
+  const currentPlatformToken=(req:express.Request):string|null=>{const token=platformToken(req);if(token)revokedTokens?.assertAllowed(token);return token;};
   const ssoStatus=(req:express.Request)=>{
     if(!platformSso||config.mode!=='kamiwaza')return {};
-    const url=new URL('/login',`${config.forwardedProto}://${config.forwardedHost}`);
-    const origin=config.publicOrigin??config.allowedOrigins[0];if(origin)url.searchParams.set('redirect',origin+'/');
-    return {platformSso:true,platformSessionAvailable:!!platformToken(req),platformLoginUrl:url.href};
+    let available=false;try{available=!!currentPlatformToken(req);}catch{/* Denial is reported by native/status, never treated as a session. */}
+    return {platformSso:true,platformSessionAvailable:available,platformLoginUrl,platformSwitchAvailable:!!native?.logoutPlatform&&!!platformToken(req)};
   };
 
   const app = express();
+  // Shared exact-token refusal also applies when the same native JWT arrives as a machine-route bearer.
+  app.locals.assertNativeTokenAllowed=(token:string)=>revokedTokens?.assertAllowed(token);
   app.disable("x-powered-by");
   app.set("etag", false);
   // Tomo is mounted before the JSON/session middleware because it reads streaming bodies.
@@ -411,7 +440,7 @@ export function createApp(opts: CreateAppOptions): express.Express {
     const entries=(req.headers.cookie??'').split(';').map(s=>s.trim()).filter(s=>s.startsWith('replay_session='));
     const id=entries.length===1?entries[0].slice('replay_session='.length):'';
     const session=/^[a-f0-9-]{36}$/.test(id)?service.store.session(id) as Session|null:null;
-    const token=platformToken(req);
+    const token=currentPlatformToken(req);
     if(!session||!token||session.platformSsoSignedOut||session.platformSessionHash!==tokenHash(token))return res.status(401).set('Cache-Control','no-store').json({error:'Continue with your current Kamiwaza session'});
     next();
   });
@@ -456,7 +485,7 @@ export function createApp(opts: CreateAppOptions): express.Express {
   const save = (res: express.Response) => service.store.putSession(res.locals.sessionId as string, res.locals.session as Session);
   const locals = (res: express.Response) => res.locals as unknown as AuthLocals;
 
-  const PUBLIC_NATIVE = new Set(["/native/status", "/native/login", "/native/logout", "/native/platform-session"]);
+  const PUBLIC_NATIVE = new Set(["/native/status", "/native/login", "/native/logout", "/native/platform-session", "/native/switch-user"]);
 
   app.use("/api", originGuard(config.allowedOrigins));
   app.use("/api", (req, res, next) => {
@@ -476,15 +505,18 @@ export function createApp(opts: CreateAppOptions): express.Express {
     if(native)Object.defineProperty(res.locals,'resolveAgentAuthority',{enumerable:false,value:()=>native.resolve(id,{requireWrite:true,requireAgents:true})});
     if (config.mode === "local-demo" || PUBLIC_NATIVE.has(req.path)) return next();
     if(platformSso){
-      const token=platformToken(req);
+      const token=currentPlatformToken(req);
       if(!token||session.platformSsoSignedOut||session.platformSessionHash!==tokenHash(token))return next(new NativeSessionError('signed_out',401,'Continue with your current Kamiwaza session'));
+      Object.defineProperty(res.locals,'assertCurrentPlatformSession',{enumerable:false,value:()=>revokedTokens?.assertAllowed(token)});
     }
     // Native mode: every other API request resolves a native identity (read level). Failure is a typed denial.
     void resolveInto(res, {}).then(() => next(), next);
   });
 
   async function resolveInto(res: express.Response, o: ResolveOptions): Promise<NativeLocals> {
+    res.locals.assertCurrentPlatformSession?.();
     const r = await native!.resolve(res.locals.sessionId as string, o);
+    res.locals.assertCurrentPlatformSession?.();
     const view: NativeLocals = { identity: r.identity, context: r.context, nativeReceipts: r.nativeReceipts, metadata: r.metadata } as NativeLocals;
     Object.defineProperty(view, "platformClient", { value: r.platformClient, enumerable: false, writable: false });
     const session = res.locals.session as Session;
@@ -572,12 +604,13 @@ export function createApp(opts: CreateAppOptions): express.Express {
 
   async function enterPlatformSession(req:express.Request,res:express.Response):Promise<NativeResolution>{
     if(!platformSso||!native?.acceptPlatformSession)throw new HttpError(409,'native_disabled','Platform session handoff is not enabled');
-    const token=platformToken(req);
+    const token=currentPlatformToken(req);
     if(!token)throw new NativeSessionError('signed_out',401,'Sign in to Kamiwaza to continue');
     const wait=limiter.check(clientKey(req));
     if(wait>0)throw new HttpError(429,'rate_limited','Too many session handoff attempts; try again shortly');
     const oldId=res.locals.sessionId as string,newId=randomUUID();
     const r=await native.acceptPlatformSession(newId,token);
+    try{revokedTokens?.assertAllowed(token);}catch(err){native.logout(newId);throw err;}
     const session={...(res.locals.session as Session),identity:r.identity,platformSessionHash:tokenHash(token),platformSsoSignedOut:false};
     service.store.putSession(newId,session);service.store.db.prepare('DELETE FROM sessions WHERE id=?').run(oldId);
     native.logout(oldId);setCookie(res,newId);res.locals.sessionId=newId;res.locals.session=session;
@@ -593,11 +626,12 @@ export function createApp(opts: CreateAppOptions): express.Express {
       let id = res.locals.sessionId as string;
       try {
         if(platformSso){
-          const token=platformToken(req),session=res.locals.session as Session;
+          const token=currentPlatformToken(req),session=res.locals.session as Session;
           if(!token||session.platformSsoSignedOut)throw new NativeSessionError('signed_out',401,'Continue with your Kamiwaza session');
           if(session.platformSessionHash!==tokenHash(token)||!native.metadata(id).signedIn){await enterPlatformSession(req,res);id=res.locals.sessionId as string;}
         }
         const r = await native.resolve(id);
+        if(platformSso)currentPlatformToken(req);
         return res.json({ ...ssoStatus(req),mode: "kamiwaza", operatorFileImport:opts.operatorFileImport===true, signedIn: true, workroomId: native.workroomId, identity: r.identity, context: r.context, metadata: r.metadata, denial: null });
       } catch (err) {
         if (!(err instanceof NativeSessionError)) throw err;
@@ -639,8 +673,7 @@ export function createApp(opts: CreateAppOptions): express.Express {
     }
   });
 
-  app.post("/api/native/logout", (_req, res, next) => {
-    try {
+  function signOutApp(res:express.Response):void {
       if (!native) throw new HttpError(409, "native_disabled", "Native sign-in is not configured");
       const oldId = res.locals.sessionId as string;
       native.logout(oldId);
@@ -651,10 +684,45 @@ export function createApp(opts: CreateAppOptions): express.Express {
       const newId = randomUUID();
       service.store.putSession(newId, fresh);
       setCookie(res, newId);
+      res.locals.sessionId=newId;res.locals.session=fresh;
+  }
+  app.post("/api/native/logout", (_req, res, next) => {
+    try {
+      signOutApp(res);
       res.json({ signedIn: false });
     } catch (err) {
       next(err);
     }
+  });
+
+  app.post('/api/native/switch-user',async(req,res,next)=>{
+    try {
+      if(!platformSso||!native?.logoutPlatform)throw new HttpError(409,'native_disabled','Native account switching is not configured');
+      if(!z.object({}).strict().safeParse(req.body).success)throw new HttpError(400,'invalid_request','This endpoint accepts no identity, credentials or redirect input');
+      const token=platformToken(req),previous=res.locals.session as Session;
+      // This binding is written only after Core verified a handoff. It remains proof of this exact
+      // token when the app gate is stale/blocked; resolving protected workroom data is not required.
+      const previouslyVerified=!!token&&previous.identity.mode==='kamiwaza'&&previous.platformSessionHash===tokenHash(token);
+      if(previouslyVerified){
+        const wait=limiter.check(clientKey(req));
+        if(wait>0){res.setHeader('Retry-After',String(Math.ceil(wait/1000)));throw new HttpError(429,'rate_limited','Too many native session attempts; try again shortly');}
+      }
+      signOutApp(res); // Fail closed locally even when native revocation is unavailable.
+      const hostname=new URL(`https://${(config as KamiwazaConfig).forwardedHost}`).hostname;
+      res.append('Set-Cookie',nativeCookieExpirations(hostname));
+      // Never let unauthenticated input consume the global refusal table or native-login rate quota.
+      if(!previouslyVerified)return res.status(401).json({signedIn:false,replayTokenBlocked:false,platformCookiesCleared:true,nativeSessionTerminationRequested:false,loginUrl:platformLoginUrl,error:'REPLAY is signed out and browser cookies are cleared. No previously verified current session was available to request native termination.'});
+      revokedTokens!.revoke(token!); // Persist proven-token refusal before the native logout network call.
+      let result:PlatformLogoutResult;
+      try{result=await native.logoutPlatform(req.headers.cookie??'');}
+      catch{result={sessionTerminationRequested:false};}
+      // Cookies are cleared even on failure. No later cookie-less retry can claim the former session was revoked.
+      const response={signedIn:false,replayTokenBlocked:!!token,platformCookiesCleared:true,nativeSessionTerminationRequested:result.sessionTerminationRequested,loginUrl:platformLoginUrl};
+      if(!result.sessionTerminationRequested)return res.status(502).json({...response,error:'REPLAY is signed out and browser cookies are cleared. Kamiwaza session termination was not confirmed.'});
+      // A newly issued platform cookie can establish a newly verified identity; the switched-out token remains refused.
+      (res.locals.session as Session).platformSsoSignedOut=false;save(res);
+      return res.json(response);
+    }catch(err){next(err);}
   });
 
   // ---- overview -----------------------------------------------------------

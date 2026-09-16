@@ -79,14 +79,15 @@ export class GameService {
   private readonly observations:ObservationReceipts;
   readonly teams:ExerciseTeams;
   constructor(readonly dataDir:string){
+    const route=readModelRoute(dataDir);
     fs.mkdirSync(dataDir,{recursive:true});this.store=new Store(path.join(dataDir,'replay.sqlite'));
     this.observations=new ObservationReceipts(dataDir);
     this.teams=new ExerciseTeams(this.store);
-    const route=readModelRoute(dataDir);this.localInference=route.local;
+    this.localInference=route.local;
     this.ledger=new BudgetLedger({path:path.join(dataDir,route.ledgerFile),maxUsd:route.maxUsd,maxRequests:100});
-    const options={apiKey:route.apiKey,ledger:this.ledger,baseUrl:route.baseUrl,model:route.model,local:route.local,timeoutMs:route.timeoutMs,maxInputBytes:APP_MODEL_INPUT_MAX_BYTES};
+    const options={apiKey:route.apiKey,ledger:this.ledger,baseUrl:route.baseUrl,model:route.model,local:route.local,timeoutMs:route.timeoutMs,maxInputBytes:APP_MODEL_INPUT_MAX_BYTES,sponsored:route.sponsored,openaiProject:route.openaiProject,openaiOrganization:route.openaiOrganization,reasoningEffort:route.reasoningEffort};
     this.luna=new LunaClient(options);
-    this.lunaChat=new LunaChatClient(options);
+    this.lunaChat=new LunaChatClient({...options,reasoningEffort:route.chatReasoningEffort});
     route.apiKey='';options.apiKey='';
   }
   async init(startClock=true){

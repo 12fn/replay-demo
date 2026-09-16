@@ -31,6 +31,7 @@ import { createCipheriv, createDecipheriv, randomBytes, timingSafeEqual } from "
 import fs from "node:fs";
 import path from "node:path";
 import { DatabaseSync } from "node:sqlite";
+import {requestNativeLogout,type PlatformLogoutResult} from './native-platform-logout';
 import {
   KamiwazaClient,
   KamiwazaError,
@@ -427,6 +428,12 @@ export class NativeSessions {
   logout(sessionId: string): void {
     this.assertOpen();
     this.forget(assertSessionId(sessionId));
+  }
+
+  /** Uses the browser's native cookie set privately; never returns tokens or native redirect URLs. */
+  async logoutPlatform(cookieHeader:string):Promise<PlatformLogoutResult> {
+    this.assertOpen();
+    return requestNativeLogout({apiBase:this.validationApiBase??this.apiBase,forwardedHost:this.forwardedHost,forwardedProto:this.forwardedProto,cookieHeader,fetchImpl:this.fetchImpl,timeoutMs:this.timeoutMs});
   }
 
   close(): void {

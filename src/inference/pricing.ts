@@ -1,5 +1,5 @@
 /**
- * Pricing and cost arithmetic for the Luna route.
+ * Pricing and cost arithmetic for the supported external routes.
  *
  * All money is handled as exact integer microdollars (1 USD = 1_000_000 micro).
  * Rates below are expressed as microdollars per one million tokens so that
@@ -32,7 +32,15 @@ export const LUNA_PRICING: PriceTable = Object.freeze({
   cacheWriteMultiplier: { num: 5, den: 4 },
 });
 
-/** Provider context window is 272k; we stay far below that. */
+/** Sol standard pricing, verified 2026-09-16: https://developers.openai.com/api/docs/models/gpt-5.6-sol */
+export const SOL_PRICING: PriceTable = Object.freeze({
+  inputMicroPerMillion: 4_000_000,
+  cachedInputMicroPerMillion: 400_000,
+  outputMicroPerMillion: 20_000_000,
+  cacheWriteMultiplier: Object.freeze({ num: 5, den: 4 }),
+});
+
+/** Both routes stay far below the 272k input-token long-context pricing threshold. */
 export const DEFAULT_MAX_INPUT_BYTES = 24 * 1024;
 /** Hard ceiling on max_output_tokens accepted by the client. */
 export const MAX_OUTPUT_TOKENS_CEILING = 1600;

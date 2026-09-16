@@ -1,46 +1,61 @@
-# Operator runbook
+# REPLAY operator runbook
 
-## Existing private native installation
+## Native deployment
 
-REPLAY is deployed in the `kamiwaza-harness-poc` Podman VM, namespace `kamiwaza-extensions`, native extension name `replay`, deployment `replay-server`, service port 5181. The retained claim is `replay-server-data`, backed by `/var/lib/replay-poc`. Graphiti, Neo4j and CPU embeddings are separate native services in the same workroom. The core installation is actual Kamiwaza 1.2, not a proxy-only substitute.
+The current demonstration runs on an ARM64 Spark with Kamiwaza 1.2 and Kubernetes. Its app container uses Node 24.5.0 and pnpm 10.17.1. The Dockerfile listens on port 5181 and stores mutable state in `/data`; mount a persistent volume writable by uid 1000. The successful saved debrief used an external API model. Application placement on a Spark does not establish local GPU inference or distributed model execution.
 
-The existing tunnel is started with `python3 scripts/platform_tunnel.py`; it reads private SSH configuration from ignored `data/platform-tunnel.json`. It forwards the app to http://127.0.0.1:5183/ and the native core API to port17777. If the VM is stopped, start it with `podman machine start kamiwaza-harness-poc` first. Service addresses in this tunnel are specific to this installation. Do not copy its SSH identity to another machine.
+Build a reviewed Git revision and keep its image, `replay-build.json`, and corresponding-source archive together. Run `python3 scripts/verify-corresponding-source.py --revision HEAD` after building to verify every archive member against the commit. Use the native extension API/operator to deploy the image and preserve the existing volume. Scripts under `scripts/platform/` retain examples from an earlier laptop installation; their private bindings must be supplied and reviewed for the target installation. They are not universal Spark installers.
 
-Check the deployment with `podman machine ssh kamiwaza-harness-poc 'sudo k0s kubectl get pods,pvc -n kamiwaza-extensions'`. Inspect only the relevant failed workload's logs; avoid dumping Secrets or process environments.
+## Kamiwaza sign-in
 
-For a reviewed source change, run `python3 scripts/run_logged.py native-build-TAG -- python3 scripts/platform/build-upgrade.py TAG`. This builds the image, saves/imports its OCI archive, calls the native extension PATCH API and waits for rollout. The script uses the current installation's normal native operator session and private binding file. It is not a universal installer. A restart deliberately disables all paid opponent/staff loops; resume them explicitly when needed.
+The installed native extension CRD uses **`spec.kamiwaza.useAuth: "true"`**; the extension-creation API spells this `kamiwaza.use_auth`. Confirm the installed schema when using a different platform version. The native `/runtime/apps/replay` route then gates entry with Kamiwaza authentication. Enable REPLAY's native SSO handoff so users do not get a second app password form.
 
-Deployment flags are explicit: normal `build-upgrade.py TAG` targets HTTPS cookies and disables operator-file import and legacy recording access. For this existing HTTP tunnel, pass `--loopback-http`; it preserves the normal HTTPS protocol used to address native ForwardAuth while accommodating the browser tunnel. Add `--operator-file-import` only for an explicitly intended local operator preview; the sign-in screen displays that it is enabled. Add `--allow-legacy-recordings` only when the release reviewer verifies a retained legacy recording is intentionally accessible. No flag deletes a recording.
+| Server setting | Configuration |
+| --- | --- |
+| `REPLAY_AUTH_MODE` | `kamiwaza` |
+| `REPLAY_PLATFORM_SSO` | `true` |
+| `REPLAY_KAMIWAZA_API` | Trusted native API base ending in `/api` |
+| `REPLAY_KAMIWAZA_VALIDATION_API` | Optional separately routed trusted identity-validation API |
+| `REPLAY_WORKROOM_ID` | Existing authorized workroom |
+| `REPLAY_FORWARDED_HOST` | Canonical native platform hostname used for ForwardAuth |
+| `REPLAY_FORWARDED_PROTO` | `https` |
+| `REPLAY_COOKIE_SECURE` | `true` |
+| `REPLAY_PUBLIC_ORIGIN` | Exact HTTPS origin of this app |
+| `REPLAY_LOGIN_ORIGIN` | Exact HTTPS origin serving native Kamiwaza sign-in |
+| `REPLAY_ALLOWED_ORIGINS` | Explicit origins including the public and login origins |
+| `REPLAY_OPERATOR_FILE_IMPORT` | Leave disabled for normal deployment |
+| `REPLAY_ALLOW_LEGACY_RECORDINGS` | Leave disabled unless retained records have been independently scoped |
 
-The public ingress gateway is not qualified. This demonstration uses a private loopback tunnel. An NPS deployment needs its own TLS gateway, platform account/workroom configuration and approved persistent storage.
+Keep the native validation hostname separate from the browser-facing login hostname. Use trusted TLS with the installation's CA; never disable certificate verification to make an ingress work. A public proxy must preserve native authentication, forward only the necessary app and sign-in routes, reject unrelated administration/model APIs, and strip caller-supplied identity headers. Do not expose the container port directly.
 
-## Another Kamiwaza 1.2 installation
+Assign native workroom permissions before applying synthetic app personas. A `replay_profiles[subject]` entry may tailor the name, organization and allowed app role; it cannot grant native membership or elevate a user to native instructor access. A demo account that creates a practice needs the relevant native write permission. Verify each role with its intended workflow and another user's exercise.
 
-1. Build the ARM64 app image or build for the destination architecture. Push/import it into an operator-approved registry/runtime. Keep the matching source archive.
-2. Create a workroom and assign users with the platform's normal roles. A workroom `replay_profiles[subject]` value may tailor role/name/organization but cannot create native permissions or elevate a non-instructor native role to instructor.
-3. Submit the app extension through the native extension API using `scripts/platform/deploy_poc.py` and `upgrade-replay.ts` as installation-specific examples, after replacing their local bindings. Mount a durable `/data` volume writable by uid1000.
-4. Set `REPLAY_AUTH_MODE=kamiwaza`, `REPLAY_KAMIWAZA_API` ending in `/api`, `REPLAY_WORKROOM_ID`, `REPLAY_FORWARDED_HOST`, and the correct forwarded protocol/allowed origins. Use secure cookies behind HTTPS. Leave operator file import and legacy recordings disabled for a learner pilot.
-5. Bind Graphiti through the normal native ontology API, deploy the CPU embedding image, and configure `REPLAY_ONTOLOGY_ID` and the exact `REPLAY_GRAPHITI_SUBJECT`. The compatibility image contains a narrowly documented fix for the supplied1.2 Graphiti embedder assignment; inspect `services/graphiti-compat/patch.py` before applying to a different release.
-6. Supply inference credentials as a Secret to the app only. The Graphiti bridge validates the platform-issued workload identity; it does not share the app user's token. All extraction and app requests draw from the same ledger and total cap.
-7. Qualify native login, role-specific writes, an actual ingest/search cycle and one recorded order/branch before admitting learners. A ready pod is insufficient evidence of those workflows.
+## Switch user
 
-## Backup and recovery
+The native account menu offers **Switch user** with confirmation. Confirming removes the protected workspace, signs out the app, persists refusal of the previously verified token, expires known platform cookies, and requests native logout before opening the fixed native sign-in route. Cancel preserves the current selection. No client-supplied username, redirect or password is accepted by this action.
 
-For normal instructor handoff, use Review → Download evidence bundle. It excludes native session secrets and limits content to the authorized exercise. The completed JSON includes canonical replay inputs and fingerprints; the Markdown is a readable review, not a full backup.
+Native logout in the tested installation ended refresh reuse but did not immediately invalidate an already issued access JWT at Core. REPLAY therefore persists only a SHA-256 fingerprint of the exact switched-out token in its existing database and refuses it for cookie and native bearer access. It does not claim platform-wide immediate JWT revocation. An unverified token cannot fill this refusal store. A failed native termination leaves the user signed out with an explicit sign-in recovery action.
 
-For service recovery, use a SQLite online backup for both `/data/replay.sqlite` and `/data/inference.sqlite`, or stop the app before copying the database and WAL files. Preserve the two ledgers together: restoring game state without the cost ledger could forget paid usage. Preserve `/data/observation-key` with the app backup: it authenticates snapshots returned with orders across restarts. Never include it in a learner export. Keep native session encryption keys and credentials in a separate access-controlled operator backup, never in the learner bundle or Git. Retained PVs are not an off-machine backup.
+After any token has been refused, rolling the app back to a version without this guard could reopen access for that token. Keep traffic closed while repairing that failure, or use a release that preserves the guard. Do not restore an old database over new session refusals, records or usage.
 
-A restart replays recorded canonical inputs and verifies checkpoint/final fingerprints. If it reports a mismatch, retain the original database and the exact image/source version; do not delete the failing recording to make startup appear successful. Ordinary tests cover restart/idempotency and watch cursors. Full infrastructure disaster recovery remains a separate pilot gate.
+## Model configuration and records
 
-## DGX Sparks
+Use [server model configuration](model-configuration.md) for external credentials, project binding, model/effort settings and local routing. Inject secrets on the server. Each deployment retains its own request/cost ledger across model changes and restarts. There is no automatic provider fallback or retry.
 
-Neither Spark has been runtime-qualified in this build. Do not treat the cable as automatic pooled memory. Choose independent workloads or an explicitly supported distributed inference topology after checking the actual installed runtime, model and interconnect configuration. The current working demonstration uses the laptop's local native cluster, local CPU embeddings and the authorized external Luna route.
+For instructor handoff, use the authorized review export. The JSON carries replay inputs and source fingerprints; Markdown provides a readable review. Neither is a service backup.
 
+For recovery, use SQLite online backups or stop the app before copying databases and their WAL files. Preserve `/data/replay.sqlite`, `/data/inference.sqlite`, `/data/local-inference.sqlite` when present, and `/data/observation-key`. Keep session encryption keys and provider credentials in a separate access-controlled operator backup. Do not publish runtime databases, browser sessions, credentials or raw provider traces in Git or the source archive.
 
-## Candidate0.27.0 presenter preflight
+## Deployment qualification
 
-Use [the prepared case runbook](demo/ten-minute-instructor-case.md). Do all installation/one-time seed actions before presenting. The actual native flagship is attributed to its original participant; instructor workroom access should not need legacy-record access. Independently verify its row scope and recorded debrief before changing the existing installation policy. If a private HTTP browser cannot retain a session after a secure-default upgrade, use its explicit loopback flag or qualify the intended HTTPS path; do not silently disable Secure cookies globally.
+Before admitting learners, verify all of the following against the actual deployed image:
 
-New JSON note originals remain in the existing exercise database and are included in authorized JSON exports. They are not automatically published to the native catalog. The source reader for archived model trials still uses managed catalog bytes. Native parsing/vector/Graphiti-source integration and full restore remain separate qualification work.
+- Anonymous entry reaches native sign-in; there is no REPLAY password form in SSO mode.
+- Login establishes the expected workroom/persona and only authorized exercise access.
+- Confirmed switching reaches native sign-in, accepts a different user, and rejects old REPLAY session/token reuse across a restart.
+- Wrong-origin requests, caller-supplied identity headers and unauthorized cross-user reads/writes fail.
+- The prepared case opens, its evidence retrieval follows real source relationships, and an export contains the expected scoped record.
+- The source archive hash matches the served build metadata and reviewed Git commit.
+- Model requests remain off until a bounded, authorized qualification under the existing ledger; saved analysis stays labeled as saved.
 
-Operator credential/token migration outside the checkout is pending coordinated operator work: current private native binding paths are shared by existing deployment tools. Do not move those files during a live release without updating and verifying their consumers. Never package them in the corresponding-source archive or instructor export.
+A healthy pod or a successful model-list request alone does not qualify those user workflows. Broader game import, phone capture, tabletop reconstruction and measured learning outcomes remain separate work.

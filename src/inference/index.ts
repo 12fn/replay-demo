@@ -14,6 +14,7 @@ export { classifyText, summarizeOutput, describeDiagnostics } from "./diagnostic
 export type { OutputDiagnostics, TextShape } from "./diagnostics.ts";
 export {
   LUNA_PRICING,
+  SOL_PRICING,
   DEFAULT_MAX_INPUT_BYTES,
   DEFAULT_MAX_OUTPUT_TOKENS,
   MAX_OUTPUT_TOKENS_CEILING,

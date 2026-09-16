@@ -16,12 +16,14 @@ import { classifyText, describeDiagnostics, summarizeOutput, type OutputDiagnost
 import { selectOutputText } from "./response-text.ts";
 import { BudgetCapError, type BudgetLedger, type Receipt } from "./ledger.ts";
 import { assertLocalRoute, chatAsResponses, LOCAL_API_PRICING, localReceiptContext } from './local-route';
+import {modelPricing, reasoningEffort, providerHeaders, privateValues, containsPrivate, safeProviderId, matchesRequestedModel, type OpenAIHeaderOptions, type ReasoningEffort} from './external-model';
 import {
   DEFAULT_MAX_INPUT_BYTES,
   DEFAULT_MAX_OUTPUT_TOKENS,
   MAX_OUTPUT_TOKENS_CEILING,
   estimateReservationMicro,
   settlementMicro,
+  type PriceTable,
 } from "./pricing.ts";
 
 export const DEFAULT_LUNA_MODEL = "gpt-5.6-luna";
@@ -30,11 +32,12 @@ export const DEFAULT_TIMEOUT_MS = 30_000;
 
 export type FetchImpl = (input: string, init: RequestInit) => Promise<Response>;
 
-export interface LunaClientOptions {
+export interface LunaClientOptions extends OpenAIHeaderOptions {
   apiKey: string;
   /** Provider-compatible base URL (OpenAI or a Kamiwaza-bound endpoint). */
   baseUrl?: string;
   model?: string;
+  reasoningEffort?: ReasoningEffort;
   ledger: BudgetLedger;
   fetchImpl?: FetchImpl;
   timeoutMs?: number;
@@ -86,6 +89,9 @@ export class LunaClient {
   private readonly fetchImpl: FetchImpl;
   private readonly extraHeaders: Record<string, string>;
   private readonly local: boolean;
+  private readonly pricing: PriceTable;
+  private readonly effort: ReasoningEffort | undefined;
+  private readonly privateValues: string[];
 
   constructor(opts: LunaClientOptions) {
     if (!opts || typeof opts !== "object") throw new TypeError("LunaClient options are required");
@@ -97,15 +103,19 @@ export class LunaClient {
     this.timeoutMs = opts.timeoutMs ?? DEFAULT_TIMEOUT_MS;
     this.maxInputBytes = opts.maxInputBytes ?? DEFAULT_MAX_INPUT_BYTES;
     this.fetchImpl = opts.fetchImpl ?? ((url, init) => fetch(url, init));
-    this.extraHeaders = { ...(opts.extraHeaders ?? {}) };
     this.local = opts.local === true;
     if (this.local) assertLocalRoute(opts.baseUrl, opts.model);
-    if (!Number.isFinite(this.timeoutMs) || this.timeoutMs <= 0) throw new RangeError("timeoutMs must be > 0");
+    this.pricing = this.local ? LOCAL_API_PRICING : modelPricing(this.model);
+    this.effort = this.local ? undefined : reasoningEffort(opts.reasoningEffort,this.model);
+    this.extraHeaders = providerHeaders(opts,this.baseUrl,this.local);
+    this.privateValues = privateValues(this.apiKey,this.extraHeaders);
+    if (!Number.isSafeInteger(this.timeoutMs) || this.timeoutMs <= 0 || this.timeoutMs > 2_147_483_647) throw new RangeError('invalid timeoutMs');
+    if (!Number.isSafeInteger(this.maxInputBytes) || this.maxInputBytes <= 0 || this.maxInputBytes > 32*1024) throw new RangeError('invalid maxInputBytes');
   }
 
   /** Never serialize the key. */
   toJSON(): Record<string, unknown> {
-    return { model: this.model, baseUrl: this.baseUrl, timeoutMs: this.timeoutMs };
+    return { model: this.model, timeoutMs: this.timeoutMs, reasoningEffort:this.effort };
   }
 
   async complete<T = unknown>(req: CompleteInput): Promise<CompleteResult<T>> {
@@ -135,7 +145,7 @@ export class LunaClient {
       }
     }
 
-    const schemaJson = req.jsonSchema ? JSON.stringify(req.jsonSchema.schema) : "";
+    const schemaJson = req.jsonSchema ? JSON.stringify(req.jsonSchema) : "";
     const inputBytes =
       Buffer.byteLength(req.instructions, "utf8") + Buffer.byteLength(req.input, "utf8") + Buffer.byteLength(schemaJson, "utf8");
     if (inputBytes > this.maxInputBytes) {
@@ -147,8 +157,8 @@ export class LunaClient {
 
     // Refuse to persist metadata that contains the credential.
     const contextJson = req.context === undefined ? "" : JSON.stringify(req.context);
-    if (this.apiKey.length >= 8 && (contextJson.includes(this.apiKey) || req.purpose.includes(this.apiKey))) {
-      throw new InferenceError("invalid_request", "purpose/context must not contain the API key");
+    if (containsPrivate(contextJson,this.privateValues) || containsPrivate(req.purpose,this.privateValues)) {
+      throw new InferenceError("invalid_request", "purpose/context must not contain provider credentials or headers");
     }
 
     // 2. Reserve an upper bound before touching the network.
@@ -158,7 +168,7 @@ export class LunaClient {
         purpose: req.purpose,
         context: this.local ? localReceiptContext(req.context) : req.context ?? null,
         modelRequested: this.model,
-        reservedMicro: estimateReservationMicro(inputBytes, maxOutputTokens, this.local ? LOCAL_API_PRICING : undefined),
+        reservedMicro: estimateReservationMicro(inputBytes, maxOutputTokens, this.pricing),
       });
     } catch (err) {
       if (err instanceof BudgetCapError) {
@@ -175,7 +185,7 @@ export class LunaClient {
       instructions: req.instructions,
       input: req.input,
       max_output_tokens: maxOutputTokens,
-      reasoning: { effort: "low" },
+      reasoning: { effort: this.effort },
       store: false,
     };
     if (req.jsonSchema) {
@@ -197,14 +207,17 @@ export class LunaClient {
     } : body;
 
     const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), this.timeoutMs);
+    let timer: ReturnType<typeof setTimeout>;
+    const deadline = new Promise<never>((_,reject)=>{
+      timer=setTimeout(()=>{controller.abort();reject(new Error('timeout'));},this.timeoutMs);
+    });
     const started = performance.now();
     const elapsed = () => Math.max(0, Math.round(performance.now() - started));
 
     // 4. Single attempt. No retries.
     let response: Response;
     try {
-      response = await this.fetchImpl(`${this.baseUrl}/${this.local ? 'chat/completions' : 'responses'}`, {
+      response = await Promise.race([this.fetchImpl(`${this.baseUrl}/${this.local ? 'chat/completions' : 'responses'}`, {
         method: "POST",
         headers: {
           "content-type": "application/json",
@@ -215,9 +228,9 @@ export class LunaClient {
         body: JSON.stringify(wireBody),
         signal: controller.signal,
         redirect: 'error',
-      });
+      }),deadline]);
     } catch (err) {
-      clearTimeout(timer);
+      clearTimeout(timer!);
       const timedOut = controller.signal.aborted;
       const code = timedOut ? "timeout" : "network_error";
       this.ledger.markUncertain(receipt.id, { durationMs: elapsed(), errorCode: code });
@@ -230,12 +243,12 @@ export class LunaClient {
       );
     }
 
-    const providerRequestId = response.headers.get("x-request-id");
+    const providerRequestId = safeProviderId(response.headers.get("x-request-id"),this.privateValues);
     let json: unknown;
     try {
-      json = await response.json();
+      json = await Promise.race([response.json(),deadline]);
     } catch {
-      clearTimeout(timer);
+      clearTimeout(timer!);
       const code = controller.signal.aborted ? "timeout" : "malformed_response";
       this.ledger.markUncertain(receipt.id, {
         durationMs: elapsed(),
@@ -248,14 +261,15 @@ export class LunaClient {
         receiptId: receipt.id,
       });
     }
-    clearTimeout(timer);
+    clearTimeout(timer!);
 
     if (response.ok && this.local) json = chatAsResponses(json);
 
     if (!response.ok) {
-      const providerCode = extractProviderCode(json);
+      const rawCode = extractProviderCode(json);
+      const providerCode = rawCode && !containsPrivate(rawCode,this.privateValues) ? rawCode : undefined;
       const durationMs = elapsed();
-      if (response.status >= 400 && response.status < 500 && providerCode !== undefined) {
+      if (response.status >= 400 && response.status < 500 && providerCode !== undefined && !Object.hasOwn(asRecord(json)??{},'usage')) {
         // Definitive rejection from the provider: nothing was billed.
         this.ledger.release(receipt.id, { durationMs, httpStatus: response.status, errorCode: `http_${response.status}`, providerRequestId });
       } else {
@@ -272,10 +286,16 @@ export class LunaClient {
     //    receipt (the only artifact that outlives the call) records why an answer was unusable.
     const selection = selectOutputText(json);
     const text = selection.text;
-    const usage = extractUsage(json);
-    const modelReturned = typeof (json as Record<string, unknown>)?.model === "string" ? String((json as Record<string, unknown>).model) : null;
-    const providerResponseId = typeof (json as Record<string, unknown>)?.id === "string" ? String((json as Record<string, unknown>).id) : null;
+    let usage = extractUsage(json);
+    const modelReturned = safeProviderId(asRecord(json)?.model,this.privateValues);
+    const providerResponseId = safeProviderId(asRecord(json)?.id,this.privateValues);
     const durationMs = elapsed();
+    if (!this.local && !matchesRequestedModel(modelReturned,this.model)) {
+      this.ledger.markUncertain(receipt.id,{durationMs,httpStatus:response.status,errorCode:'model_mismatch',providerRequestId});
+      throw new InferenceError('malformed_response','provider model differs from the priced model; reservation retained',{receiptId:receipt.id});
+    }
+    let settledMicro = 0;
+    if (usage) { try { settledMicro = settlementMicro(usage,this.pricing); } catch { usage=null; } }
     const diagnostics = summarizeOutput(json, text, usage?.outputTokens ?? null, selection.diagnostics);
     const failure = classifyFailure(diagnostics, req.jsonSchema !== undefined);
 
@@ -289,7 +309,7 @@ export class LunaClient {
       });
     } else {
       finalReceipt = this.ledger.settle(receipt.id, {
-        settledMicro: settlementMicro(usage, this.local ? LOCAL_API_PRICING : undefined),
+        settledMicro,
         inputTokens: usage.inputTokens,
         cachedInputTokens: usage.cachedInputTokens,
         outputTokens: usage.outputTokens,
@@ -373,9 +393,10 @@ function extractUsage(json: unknown): ProviderUsage | null {
   if (!usage) return null;
   const input = usage.input_tokens;
   const output = usage.output_tokens;
-  if (!Number.isSafeInteger(input) || !Number.isSafeInteger(output)) return null;
+  if (!Number.isSafeInteger(input) || !Number.isSafeInteger(output) || (input as number)<0 || (output as number)<0) return null;
   const details = asRecord(usage.input_tokens_details);
   const cachedRaw = details?.cached_tokens;
   const cached = Number.isSafeInteger(cachedRaw) ? (cachedRaw as number) : 0;
+  if (cached<0 || cached>(input as number)) return null;
   return { inputTokens: input as number, cachedInputTokens: cached, outputTokens: output as number };
 }

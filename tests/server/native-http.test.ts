@@ -113,6 +113,9 @@ class FakeNative implements NativeSessionPort {
     return { signedIn: true, subject: u.subject, username: username!, workroomId: WORKROOM, accessExpiresAt: null, refreshable: true, binding: "session", createdAt: "2026-09-13T12:00:00.000Z" };
   }
 
+  readonly logoutPlatformCalls:string[]=[];
+  async logoutPlatform(cookie:string){this.logoutPlatformCalls.push(cookie);return {sessionTerminationRequested:true};}
+
   logout(sessionId: string): void {
     this.sessions.delete(sessionId);
   }
@@ -197,7 +200,7 @@ async function harness(overrides: Omit<Partial<KamiwazaConfig>, "mode"> & { mode
     return b;
   };
 
-  return { service, native, app, base, browser, signIn, legacyId: service.store.exercises()[0]!.id };
+  return { service, native, app, config, base, browser, signIn, legacyId: service.store.exercises()[0]!.id };
 }
 
 const cookieId = (b: Browser) => b.cookie?.split("=")[1] ?? null;
@@ -773,4 +776,60 @@ describe('native platform cookie handoff',()=>{
 
 it('binds early-mounted Tomo browser routes to the current platform session as well',async()=>{
  const {browser,native}=await harness({platformSso:true,cookieSecure:true,mountInternal:app=>{app.get('/runtime/apps/replay-tomo/probe',(_req,res)=>res.json({ok:true}));}});native.user('alice');const b=browser();const header=()=>({cookie:b.cookie+'; access_token=header.alice.signature'});await b.get('/api/native/status',header());expect((await b.get('/runtime/apps/replay-tomo/probe',header())).status).toBe(200);expect((await b.get('/runtime/apps/replay-tomo/probe')).status).toBe(401);expect((await b.get('/runtime/apps/replay-tomo/probe',{cookie:b.cookie+'; access_token=header.bob.signature'})).status).toBe(401);
+});
+
+describe('native account switch',()=>{
+ const setup=()=>harness({platformSso:true,cookieSecure:true,loginOrigin:'https://public.example',allowedOrigins:['https://public.example'],mountInternal:app=>{app.get('/runtime/apps/replay-tomo/probe',(_req,res)=>res.json({ok:true}));}});
+ it('clears both browser sessions, refuses the old still-native-valid token everywhere, and admits a newly verified identity',async()=>{
+  const {browser,native,service,config}=await setup();native.user('alice');native.user('bob',{nativeRole:'viewer'});const b=browser();const oldHeader=()=>({cookie:b.cookie+'; access_token=header.alice.signature'});
+  await b.get('/api/native/status',oldHeader());await b.get('/api/overview',oldHeader());const prior=b.cookie;const out=await b.post('/api/native/switch-user',{},oldHeader());
+  expect(out.status).toBe(200);expect(out.body).toEqual({signedIn:false,replayTokenBlocked:true,platformCookiesCleared:true,nativeSessionTerminationRequested:true,loginUrl:'https://public.example/login?redirect=%2Fruntime%2Fapps%2Freplay'});expect(b.cookie).not.toBe(prior);expect(native.users.get('alice')!.revoked).toBe(false);
+  const cookies=out.headers.getSetCookie();expect(cookies).toHaveLength(9);for(const name of ['access_token','access_token_refresh','access_token_refresh_ts','access_token_id'])expect(cookies.filter(c=>c.startsWith(name+'=')&&c.includes('Max-Age=0'))).toHaveLength(2);
+  expect((await b.get('/api/native/status',oldHeader())).body).toMatchObject({signedIn:false,platformSessionAvailable:false,denial:{httpStatus:401}});
+  expect((await b.get('/api/overview',oldHeader())).status).toBe(401);expect((await b.post('/api/native/platform-session',{},oldHeader())).status).toBe(401);expect((await b.get('/runtime/apps/replay-tomo/probe',oldHeader())).status).toBe(401);
+  // A fresh HTTP application reconstructs its guard from the durable store; the unit suite also reopens the SQLite file.
+  const restarted=createApp({service,config,native});const server=restarted.listen(0,'127.0.0.1');await new Promise<void>(resolve=>server.once('listening',resolve));cleanup.push(()=>new Promise<void>(resolve=>server.close(()=>resolve())));
+  const base=`http://127.0.0.1:${(server.address() as AddressInfo).port}`;const replay=await fetch(base+'/api/native/status',{headers:{cookie:prior+'; access_token=header.alice.signature'}});expect((await replay.json() as any).denial.httpStatus).toBe(401);
+  const changed=await b.get('/api/native/status',{cookie:b.cookie+'; access_token=header.bob.signature'});expect(changed.body).toMatchObject({signedIn:true,identity:{subject:'sub-bob',role:'intelligence'}});expect((await b.get('/api/overview',{cookie:b.cookie+'; access_token=header.bob.signature'})).status).toBe(200);
+ });
+ it('stays signed out on native failure, clears native cookies, and does not convert a retry into success',async()=>{
+  const {browser,native}=await setup();native.user('alice');native.logoutPlatform=async cookie=>({sessionTerminationRequested:false});const b=browser();const header=()=>({cookie:b.cookie+'; access_token=header.alice.signature'});await b.get('/api/native/status',header());
+  const out=await b.post('/api/native/switch-user',{},header());expect(out.status).toBe(502);expect(out.body).toMatchObject({signedIn:false,replayTokenBlocked:true,platformCookiesCleared:true,nativeSessionTerminationRequested:false});expect(out.headers.getSetCookie()).toHaveLength(9);expect((await b.get('/api/overview',header())).status).toBe(401);expect((await b.get('/api/native/status',header())).body.signedIn).toBe(false);expect((await b.post('/api/native/switch-user')).body.nativeSessionTerminationRequested).toBe(false);
+ });
+ it('rejects cross-origin and caller-controlled identity/redirect before sign-out or native network work',async()=>{
+  const {browser,native}=await setup();native.user('alice');const b=browser();const header=()=>({cookie:b.cookie+'; access_token=header.alice.signature'});await b.get('/api/native/status',header());const before=b.cookie;
+  expect((await b.post('/api/native/switch-user',{}, {...header(),origin:'https://attacker.example'})).status).toBe(403);expect((await b.post('/api/native/switch-user',{redirect:'https://attacker.example',identity:'owner'},header())).status).toBe(400);expect(native.logoutPlatformCalls).toHaveLength(0);expect(b.cookie).toBe(before);expect((await b.get('/api/overview',header())).status).toBe(200);
+ });
+ it('fails closed if the persistent refusal write fails, without making the native network call',async()=>{
+  const {browser,native,service}=await setup();native.user('alice');const b=browser();const header=()=>({cookie:b.cookie+'; access_token=header.alice.signature'});await b.get('/api/native/status',header());
+  service.store.db.exec("CREATE TRIGGER fail_refusal BEFORE INSERT ON native_switched_tokens BEGIN SELECT RAISE(ABORT,'synthetic disk failure'); END");
+  const out=await b.post('/api/native/switch-user',{},header());expect(out.status).toBe(503);expect(native.logoutPlatformCalls).toHaveLength(0);expect(out.headers.getSetCookie()).toHaveLength(9);expect((await b.get('/api/overview',header())).status).toBe(503);expect((await b.get('/runtime/apps/replay-tomo/probe',header())).status).toBe(503);
+ });
+ it('rejects more than the revocation capacity of forged tokens without consuming refusal storage or the legitimate login quota',async()=>{
+  const {browser,native,service}=await setup();native.user('alice');const attacker=browser();
+  for(let i=0;i<10_001;i++){
+   const out=await attacker.post('/api/native/switch-user',{}, {cookie:(attacker.cookie??'')+'; access_token=header.forged'+i+'.signature'});
+   expect(out.status).toBe(401);expect(out.body).toMatchObject({signedIn:false,replayTokenBlocked:false,platformCookiesCleared:true,nativeSessionTerminationRequested:false});
+  }
+  expect(service.store.db.prepare('SELECT COUNT(*) n FROM native_switched_tokens').get()).toEqual({n:0});expect(native.logoutPlatformCalls).toHaveLength(0);expect(native.resolveCalls).toHaveLength(0);
+  const legitimate=browser();const status=await legitimate.get('/api/native/status',{cookie:'access_token=header.alice.signature'});expect(status.body).toMatchObject({signedIn:true,identity:{subject:'sub-alice'}});expect((await legitimate.get('/api/overview',{cookie:legitimate.cookie+'; access_token=header.alice.signature'})).status).toBe(200);
+ },60_000);
+ it('does not add rows or request native termination when no token or only an unbound real native token is supplied',async()=>{
+  const {browser,native,service}=await setup();native.user('alice');const b=browser();
+  for(let i=0;i<20;i++){const out=await b.post('/api/native/switch-user');expect(out.status).toBe(401);expect(out.body.replayTokenBlocked).toBe(false);}
+  expect((await b.post('/api/native/switch-user',{}, {cookie:b.cookie+'; access_token=header.alice.signature'})).status).toBe(401);
+  expect(service.store.db.prepare('SELECT COUNT(*) n FROM native_switched_tokens').get()).toEqual({n:0});expect(native.logoutPlatformCalls).toHaveLength(0);
+ });
+ it.each(['expired','blocked'])('allows a proven bound token to sign out from a %s app gate without reauthorizing protected content',async reason=>{
+  const {browser,native,service}=await setup();const user=native.user('alice');const b=browser();const header=()=>({cookie:b.cookie+'; access_token=header.alice.signature'});await b.get('/api/native/status',header());
+  if(reason==='expired')native.sessions.clear();else user.interactionMode='blocked';
+  expect((await b.get('/api/overview',header())).status).toBe(reason==='expired'?401:403);const resolveCount=native.resolveCalls.length;
+  let called=false;native.logoutPlatform=async()=>{called=true;expect(service.store.db.prepare('SELECT COUNT(*) n FROM native_switched_tokens').get()).toEqual({n:1});return {sessionTerminationRequested:true};};
+  const result=await b.post('/api/native/switch-user',{},header());expect(result.status).toBe(200);expect(result.body.replayTokenBlocked).toBe(true);expect(called).toBe(true);expect(native.resolveCalls).toHaveLength(resolveCount);
+ });
+ it('rejects a pending handoff that finishes after the exact token was switched out',async()=>{
+  const {browser,native}=await setup();native.user('alice');const other=browser();await other.get('/api/native/status',{cookie:'access_token=header.alice.signature'});const original=native.acceptPlatformSession.bind(native);let release!:()=>void,entered!:()=>void;const waiting=new Promise<void>(resolve=>{release=resolve;}),started=new Promise<void>(resolve=>{entered=resolve;});
+  native.acceptPlatformSession=async(id,token)=>{const result=await original(id,token);entered();await waiting;return result;};const b=browser();const pending=b.get('/api/native/status',{cookie:'access_token=header.alice.signature'});await started;
+  expect((await other.post('/api/native/switch-user',{}, {cookie:other.cookie+'; access_token=header.alice.signature'})).status).toBe(200);release();expect((await pending).body.signedIn).toBe(false);expect(native.sessions.size).toBe(0);
+ });
 });

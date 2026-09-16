@@ -1,3 +1,5 @@
+import {DatabaseSync} from 'node:sqlite';
+import {NativeTokenRevocations} from '../../src/server/native-token-revocations';
 import { describe, expect, it, vi } from "vitest";
 import { FORWARD_AUTH_PATH, KamiwazaClient, type FetchImpl, type KamiwazaClientOptions } from "../../src/platform/index.ts";
 import { McpAuthError, McpBearerResolver, extractBearer, extractWorkroom } from "../../src/server/mcp-auth.ts";
@@ -66,11 +68,12 @@ function fakePlatform() {
   return { state, fetchImpl };
 }
 
-function harness() {
+function harness(assertTokenAllowed?:(token:string)=>void) {
   const platform = fakePlatform();
   const clients: { opts: KamiwazaClientOptions }[] = [];
   const resolver = new McpBearerResolver({
     apiBase: API_BASE,
+    assertTokenAllowed,
     workroomId: WORKROOM_ID,
     forwardedHost: HOST,
     fetchImpl: platform.fetchImpl,
@@ -318,4 +321,24 @@ describe("MCP auth regression boundaries", () => {
     assertNoSecrets([one, two]);
     expect(JSON.stringify([one, two])).not.toContain(otherToken);
   });
+});
+
+
+describe('MCP and native Tomo use the same exact-token refusal policy',()=>{
+ it('refuses a switched browser JWT presented as bearer, while a distinct service token still requires and passes native validation',async()=>{
+  const db=new DatabaseSync(':memory:');try{const revoked=new NativeTokenRevocations(db);revoked.revoke(TOKEN);const {platform,resolver,headers}=harness(token=>revoked.assertAllowed(token));
+   const error=await denial(resolver.resolve(headers()));expect(error.httpStatus).toBe(401);assertNoSecrets(error);expect(platform.fetchImpl).not.toHaveBeenCalled();
+   const serviceToken='distinct-native-service-token';platform.state.validTokens.add(serviceToken);expect((await resolver.resolve(headers({authorization:'Bearer '+serviceToken}))).identity.subject).toBe(USER_ID);expect(platform.fetchImpl).toHaveBeenCalledTimes(4);
+  }finally{db.close();}
+ });
+ it('rechecks after awaited native validation so a switch during an in-flight bearer request is refused',async()=>{
+  const db=new DatabaseSync(':memory:');try{const revoked=new NativeTokenRevocations(db);const {resolver,headers,platform}=harness(token=>revoked.assertAllowed(token));
+   let release!:()=>void,entered!:()=>void;const held=new Promise<void>(resolve=>{release=resolve;}),started=new Promise<void>(resolve=>{entered=resolve;});const original=platform.fetchImpl.getMockImplementation()!;
+   platform.fetchImpl.mockImplementation(async(input,init)=>{const result=await original(input,init);if(new URL(input).pathname.endsWith('/runtime/context')){entered();await held;}return result;});
+   const pending=resolver.resolve(headers());await started;revoked.revoke(TOKEN);release();expect((await denial(pending)).httpStatus).toBe(401);expect(platform.fetchImpl).toHaveBeenCalledTimes(2);
+  }finally{db.close();}
+ });
+ it('fails closed when refusal storage cannot be read',async()=>{
+  const {resolver,headers,platform}=harness(()=>{throw new Error('private storage detail');});const error=await denial(resolver.resolve(headers()));expect(error.httpStatus).toBe(503);expect(error.message).not.toContain('private');expect(platform.fetchImpl).not.toHaveBeenCalled();
+ });
 });

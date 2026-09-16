@@ -58,6 +58,7 @@ export interface NativeStatus {
   platformSso?:boolean;
   platformSessionAvailable?:boolean;
   platformLoginUrl?:string;
+  platformSwitchAvailable?:boolean;
   mode: NativeMode;
   signedIn: boolean;
   workroomId: string | null;
@@ -73,6 +74,15 @@ export interface NativeLoginResult {
   context: NativeContextView;
   metadata: NativeMetadata;
   receipts: NativeReceipt[];
+}
+
+export interface NativeSwitchResult {
+  signedIn:false;
+  nativeSessionTerminationRequested:boolean;
+  platformCookiesCleared:true;
+  replayTokenBlocked:boolean;
+  loginUrl?:string;
+  error?:string;
 }
 
 /** Native block the backend adds to `overview.platform` when the session is a resolved Kamiwaza identity. */
@@ -114,6 +124,14 @@ export const nativeApi = {
   login: (username: string, password: string) =>
     request<NativeLoginResult>('/api/native/login', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ username, password }) }),
   logout: () => request<{ signedIn: false }>('/api/native/logout', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{}' }),
+  switchUser: async ():Promise<NativeSwitchResult> => {
+    let res:Response;
+    try{res=await fetch('/api/native/switch-user',{method:'POST',cache:'no-store',headers:{Accept:'application/json','Content-Type':'application/json'},body:'{}'});}
+    catch{throw new Error('Could not confirm sign-out. Open Kamiwaza sign-in to recover.');}
+    const result=await res.json().catch(()=>null) as NativeSwitchResult|null;
+    if(!result||result.signedIn!==false||typeof result.nativeSessionTerminationRequested!=='boolean'||result.platformCookiesCleared!==true||typeof result.replayTokenBlocked!=='boolean'||(!res.ok&&result.nativeSessionTerminationRequested))throw new Error('Could not confirm sign-out. Open Kamiwaza sign-in to recover.');
+    return result;
+  },
 };
 
 /** Native block from an overview, if the backend resolved a Kamiwaza identity for this request. */

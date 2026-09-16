@@ -1,4 +1,4 @@
-# REPLAY — Decisions into Learning
+# REPLAY
 
 **An AI training and assistance layer for wargaming.**
 
@@ -44,6 +44,8 @@ Paid inference starts disabled. Configure provider credentials only on the serve
 ## Native Kamiwaza deployment
 
 The event demonstration runs on an ARM64 Spark under Kamiwaza 1.2. Its successful debrief qualification used an external API model. App deployment on a Spark does not imply that the model ran on that Spark's GPU.
+
+Version 0.29.4 adds confirmed native account switching and explicit server model/project configuration. Its working interface uses task labels without promotional taglines.
 
 See the [operator runbook](docs/operator-runbook.md) for native configuration and the [instructor guide](docs/pilot/instructor-guide.md) for the learning workflow. Configure a real HTTPS origin, trusted native identity validation, workroom permissions, and persistent storage for your own installation. Live credentials, session databases, participant records and private network setup are excluded.
 

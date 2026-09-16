@@ -10,6 +10,7 @@ interface Props {
   onChange: () => Promise<void>;
   /** Clear harmless navigation preferences after an explicit, successful sign-out. */
   onSignedOut?: () => void;
+  onSwitchUser?:()=>void;
   /** Status and message from the last overview request when it was refused (e.g. 403 blocked, 503 unavailable). */
   denied: { status: number; message: string } | null;
 }
@@ -20,7 +21,7 @@ interface Props {
  * opaque session cookie. When a session exists but the platform refuses it,
  * the same card explains the denial and offers sign-out.
  */
-export function NativeSignIn({ status, onChange, onSignedOut, denied }: Props) {
+export function NativeSignIn({ status, onChange, onSignedOut, denied, onSwitchUser }: Props) {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [busy, setBusy] = useState(false);
@@ -90,6 +91,7 @@ export function NativeSignIn({ status, onChange, onSignedOut, denied }: Props) {
             Access is decided by the platform on every request; ask the workroom operator if this is unexpected.
           </p>
           <div className="native-actions">
+            {onSwitchUser&&<button type="button" className="btn" disabled={busy} onClick={onSwitchUser}>Switch user</button>}
             <button type="button" className="btn" disabled={busy} onClick={() => void signOut()}>
               <LogOut size={14} aria-hidden="true" /> Sign out
             </button>
@@ -109,6 +111,7 @@ export function NativeSignIn({ status, onChange, onSignedOut, denied }: Props) {
       <p className="native-lead">Continue with your Kamiwaza session.</p>
       <p className="native-hint">Kamiwaza supplies your identity and workroom permissions. Your exercise record stays in this workroom.</p>
       <div className="native-actions">
+        {onSwitchUser&&<button type="button" className="btn" disabled={busy} onClick={onSwitchUser}>Switch user</button>}
         {status.platformSessionAvailable ? <button className="btn btn-primary" disabled={busy} onClick={()=>void continuePlatform()}><LogIn size={14} aria-hidden="true" />{busy?'Opening workroom…':'Continue with Kamiwaza'}</button>
           : status.platformLoginUrl && <a className="btn btn-primary" href={status.platformLoginUrl}><LogIn size={14} aria-hidden="true" />Sign in to Kamiwaza</a>}
       </div>

@@ -165,7 +165,7 @@ export function ReviewView({ ctx, navigation, onModeChange: setReviewMode, onTab
   };
 
   return (<>
-    <PageHeading eyebrow="Understand the choice" title="Decision review" description="Reconstruct what was known, inspect the sources, and preserve the reasoning." />
+    <PageHeading title="Decision review" description="Select a recorded decision to inspect its reports, source timeline, and review notes." />
     <WorkspaceTabs label="Review workspace" value={reviewMode} onChange={setReviewMode} items={[{id:'record',label:'Decision record'},{id:'learning',label:'Debrief & handoff'}]} />
     <div className={`layout layout-review${reviewMode === 'learning' ? ' review-learning' : ''}`}>
       <section className="col col-map">

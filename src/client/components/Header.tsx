@@ -27,10 +27,11 @@ interface Props {
   connection: ConnectionStatus; connectionError: string | null; lastUpdated: Date | null;
   refresh: () => Promise<void>; activeExercise: ExerciseSummary | undefined; assignedSide: Side;
   native: NativePlatformBlock | null; onSignOut: () => Promise<void>;
+  onSwitchUser?:()=>void;
 }
 
 /** Navigation, account controls, and exercise context have separate, stable homes. */
-export function Header({ ov, view, onNavigate, connection, connectionError, lastUpdated, refresh, activeExercise, assignedSide, native, onSignOut }: Props) {
+export function Header({ ov, view, onNavigate, connection, connectionError, lastUpdated, refresh, activeExercise, assignedSide, native, onSignOut, onSwitchUser }: Props) {
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
   const run = async (fn: () => Promise<unknown>) => {
@@ -48,7 +49,7 @@ export function Header({ ov, view, onNavigate, connection, connectionError, last
     <aside className="app-sidebar" aria-label="REPLAY workspace">
       <button className="brand" onClick={() => onNavigate('showcase')} aria-label="REPLAY home">
         <span className="brand-mark"><RotateCcw size={23} aria-hidden="true" /></span>
-        <span><strong>REPLAY</strong><small>Decisions into learning</small></span>
+        <span><strong>REPLAY</strong></span>
       </button>
       <div className="sidebar-section-label">Learning workspace</div>
       <nav className="nav" aria-label="Destinations">
@@ -65,7 +66,7 @@ export function Header({ ov, view, onNavigate, connection, connectionError, last
           <summary><span className="avatar">{ov.identity.name.slice(0, 1).toUpperCase()}</span><span className="account-name"><strong>{ov.identity.name}</strong><span>{role}{isLocal ? ' · demo persona' : ''}</span></span><ChevronDown size={15} aria-hidden="true" /></summary>
           <div className="account-options">
             {isLocal ? <label>Demo persona<select className="select" value={ov.identity.role} disabled={busy} onChange={e => void run(() => api.session(e.target.value as Role))}>{ROLES.map(r => <option key={r.id} value={r.id}>{r.label}</option>)}</select></label>
-              : <><p className="small muted">{role} access is assigned by your workroom.{context && <> {accessLabel(context)}.</>}</p><button className="btn btn-ghost" disabled={busy} onClick={() => void run(async () => { await nativeApi.logout(); await onSignOut(); })}><LogOut size={15} aria-hidden="true" />Sign out of REPLAY</button></>}
+              : <><p className="small muted">{role} access is assigned by your workroom.{context && <> {accessLabel(context)}.</>}</p>{onSwitchUser&&<button className="btn btn-ghost" disabled={busy} onClick={onSwitchUser}>Switch user</button>}<button className="btn btn-ghost" disabled={busy} onClick={() => void run(async () => { await nativeApi.logout(); await onSignOut(); })}><LogOut size={15} aria-hidden="true" />Sign out of REPLAY</button></>}
           </div>
         </details>
       </div>

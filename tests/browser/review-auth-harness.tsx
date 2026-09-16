@@ -17,22 +17,23 @@ const ov:Overview={identity:{subject:'synthetic-a',name:'Synthetic protected par
   timeline:[],reports:[{id:'synthetic-source',tick:1,title:'Synthetic protected source sentinel',body:'Fictional evidence for DOM absence assertions.',source:'Authored QA fixture',confidence:'synthetic',side:'blue'}],
   tasks:[],findings:[],dossier:{summary:'Synthetic',strengths:[],practice:[],priorAttempts:[],limitations:['Synthetic QA only']},
   selectedSide:'blue',playbackTick:2,platform:{mode:'kamiwaza',nativeConnected:true,model:'disabled',requests:0,spentUsd:0,capUsd:0,traceCount:0,ontologyStatus:'unconfigured',details:[],native} as Overview['platform']};
-let denied:number|null=null,signedIn=true,logoutCount=0,overviewCount=0;
+let denied:number|null=null,signedIn=true,logoutCount=0,overviewCount=0,switchCount=0;
 const events:Array<{at:string;path:string;status:number}>=[];
 const output=document.getElementById('qa-observation')!;
-const show=()=>{output.textContent=JSON.stringify({denied,signedIn,logoutCount,overviewCount,last:events.slice(-5)});};
+const show=()=>{output.textContent=JSON.stringify({denied,signedIn,logoutCount,overviewCount,switchCount,last:events.slice(-5)});};
 const reply=(path:string,body:unknown,status=200)=>{events.push({at:new Date().toISOString(),path,status});show();return new Response(JSON.stringify(body),{status,headers:{'Content-Type':'application/json'}});};
 window.fetch=async(input,init)=>{
   if(init?.signal?.aborted)throw new DOMException('Aborted','AbortError');
   const path=typeof input==='string'?input:input instanceof URL?input.pathname:input.url;
   if(path==='/api/overview'){overviewCount++;return denied?reply(path,{error:'Synthetic authority refusal'},denied):reply(path,ov);}
   if(path==='/api/native/status'){
-    const status:NativeStatus={mode:'kamiwaza',platformSso:true,platformSessionAvailable:true,signedIn,workroomId:native.workroomId,
+    const status:NativeStatus={mode:'kamiwaza',platformSso:true,platformSessionAvailable:true,platformSwitchAvailable:true,platformLoginUrl:'https://native.example/login?redirect=%2Fruntime%2Fapps%2Freplay',signedIn,workroomId:native.workroomId,
       identity:signedIn?{...ov.identity,mode:'kamiwaza'}:null,context:signedIn?native.context:null,metadata:native.metadata,
       denial:denied===403?{code:'access_blocked',httpStatus:403,message:'Synthetic authority refusal'}:null};
     return reply(path,status);
   }
   if(path==='/api/native/logout'){logoutCount++;signedIn=false;denied=401;return reply(path,{signedIn:false});}
+  if(path==='/api/native/switch-user'){switchCount++;signedIn=false;denied=401;show();await new Promise(resolve=>setTimeout(resolve,750));return reply(path,{signedIn:false,replayTokenBlocked:true,platformCookiesCleared:true,nativeSessionTerminationRequested:false},502);}
   // An unexpected mutation can never reach an external endpoint in this harness.
   return reply(path,{error:'Not provided by synthetic navigation fixture'},404);
 };

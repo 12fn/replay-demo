@@ -11,9 +11,10 @@ import { DEFAULT_BASE_URL, DEFAULT_LUNA_MODEL, DEFAULT_TIMEOUT_MS } from './luna
 import { BudgetCapError, type BudgetLedger, type Receipt } from './ledger.ts';
 import { InferenceError, type InferenceErrorCode, sanitizeProviderCode } from './errors.ts';
 import { assertLocalRoute, LOCAL_API_PRICING, localReceiptContext } from './local-route';
+import {modelPricing, reasoningEffort, providerHeaders, privateValues, containsPrivate, safeProviderId, matchesRequestedModel, type ReasoningEffort} from './external-model';
 import {
   DEFAULT_MAX_OUTPUT_TOKENS, MAX_OUTPUT_TOKENS_CEILING,
-  estimateReservationMicro, settlementMicro, type UsageTokens,
+  estimateReservationMicro, settlementMicro, type UsageTokens, type PriceTable,
 } from './pricing.ts';
 
 export const MAX_CHAT_MESSAGES = 128;
@@ -250,7 +251,7 @@ function providerTools(tools: ChatFunctionTool[]): ChatFunctionTool[] {
   });
 }
 
-function usageOf(json: unknown, local=false): { tokens: UsageTokens; cost: number } | null {
+function usageOf(json: unknown, pricing: PriceTable): { tokens: UsageTokens; cost: number } | null {
   if (!record(json) || !record(json.usage)) return null;
   const u = json.usage;
   const details = u.prompt_tokens_details;
@@ -260,7 +261,7 @@ function usageOf(json: unknown, local=false): { tokens: UsageTokens; cost: numbe
   if (!Number.isSafeInteger(u.prompt_tokens + u.completion_tokens)) return null;
   const tokens = { inputTokens: u.prompt_tokens, outputTokens: u.completion_tokens, cachedInputTokens: cached };
   // Even safe token integers can overflow the shared integer pricing arithmetic.
-  try { return { tokens, cost: settlementMicro(tokens, local ? LOCAL_API_PRICING : undefined) }; } catch { return null; }
+  try { return { tokens, cost: settlementMicro(tokens, pricing) }; } catch { return null; }
 }
 
 async function readBounded(response: Response, signal: AbortSignal): Promise<unknown> {
@@ -323,6 +324,9 @@ export class LunaChatClient {
   private readonly fetchImpl: FetchImpl;
   private readonly extraHeaders: Record<string, string>;
   private readonly local: boolean;
+  private readonly pricing: PriceTable;
+  private readonly effort: ReasoningEffort | undefined;
+  private readonly privateValues: string[];
 
   constructor(opts: LunaClientOptions) {
     if (!opts?.ledger) throw new TypeError('LunaChatClient requires a BudgetLedger');
@@ -339,13 +343,16 @@ export class LunaChatClient {
     if (!['https:', 'http:'].includes(url.protocol) || url.username || url.password || url.search || url.hash) throw new TypeError('invalid baseUrl');
     this.ledger = opts.ledger;
     this.fetchImpl = opts.fetchImpl ?? ((url, init) => fetch(url, init));
-    this.extraHeaders = { ...opts.extraHeaders };
     this.local = opts.local === true;
     if (this.local) assertLocalRoute(opts.baseUrl,opts.model);
+    this.pricing = this.local ? LOCAL_API_PRICING : modelPricing(this.model);
+    this.effort = this.local ? undefined : reasoningEffort(opts.reasoningEffort,this.model,true);
+    this.extraHeaders = providerHeaders(opts,this.baseUrl,this.local);
+    this.privateValues = privateValues(this.apiKey,this.extraHeaders);
   }
 
   /** Neither endpoint configuration, headers nor the key enter serialized client diagnostics. */
-  toJSON(): RecordValue { return { model: this.model, timeoutMs: this.timeoutMs, maxInputBytes: this.maxInputBytes }; }
+  toJSON(): RecordValue { return { model: this.model, timeoutMs: this.timeoutMs, maxInputBytes: this.maxInputBytes, reasoningEffort:this.effort }; }
 
   async complete(input: ChatCompleteInput): Promise<ChatCompleteResult> {
     if (!this.local && !this.apiKey.trim()) throw new InferenceError('missing_credentials', 'no API key configured for the Luna route');
@@ -354,12 +361,12 @@ export class LunaChatClient {
     try {
       const copy = snapshot(input, this.maxInputBytes);
       validate(copy); req = copy;
-      requireShape(!this.apiKey || !JSON.stringify({ purpose: req.purpose, context: req.context }).includes(this.apiKey));
-      // Native Luna rejected tools plus low reasoning on Chat. Use supported non-reasoning tool mode.
+      requireShape(!containsPrivate(JSON.stringify({ purpose: req.purpose, context: req.context }),this.privateValues));
+      // Preserve Luna's qualified non-reasoning tool default; Sol low remains provisional until live qualification.
       body = JSON.stringify({
         model: this.model, messages: req.messages.map(message=>message.role==='tool'?{role:message.role,content:message.content,tool_call_id:message.tool_call_id}:message), ...(req.tools !== undefined ? { tools: providerTools(req.tools) } : {}),
         ...(req.toolChoice !== undefined ? { tool_choice: req.toolChoice } : {}),
-        ...(this.local ? {max_tokens:req.maxOutputTokens??DEFAULT_MAX_OUTPUT_TOKENS} : {max_completion_tokens:req.maxOutputTokens??DEFAULT_MAX_OUTPUT_TOKENS,store:false,reasoning_effort:'none'}),
+        ...(this.local ? {max_tokens:req.maxOutputTokens??DEFAULT_MAX_OUTPUT_TOKENS} : {max_completion_tokens:req.maxOutputTokens??DEFAULT_MAX_OUTPUT_TOKENS,store:false,reasoning_effort:this.effort}),
         n: 1, stream: false,
       });
       if (Buffer.byteLength(body) > this.maxInputBytes) throw new InferenceError('input_too_large', 'chat input exceeds byte limit');
@@ -370,7 +377,7 @@ export class LunaChatClient {
     let receipt: Receipt;
     try {
       receipt = this.ledger.reserve({ purpose: req.purpose, context: this.local ? localReceiptContext(req.context) : req.context ?? null, modelRequested: this.model,
-        reservedMicro: estimateReservationMicro(Buffer.byteLength(body), req.maxOutputTokens ?? DEFAULT_MAX_OUTPUT_TOKENS, this.local ? LOCAL_API_PRICING : undefined) });
+        reservedMicro: estimateReservationMicro(Buffer.byteLength(body), req.maxOutputTokens ?? DEFAULT_MAX_OUTPUT_TOKENS, this.pricing) });
     } catch (err) {
       const code = err instanceof BudgetCapError ? err.kind === 'requests' ? 'request_cap_exceeded' : 'budget_exceeded' : 'ledger_error';
       throw new InferenceError(code, 'chat request could not reserve project budget');
@@ -381,7 +388,7 @@ export class LunaChatClient {
     const deadline = new Promise<never>((_, reject) => {
       timer = setTimeout(() => { controller.abort(); reject(new Error('timeout')); }, this.timeoutMs);
     });
-    const safeId = (v: unknown): string | null => typeof v === 'string' && IDENTIFIER.test(v) && (!this.apiKey || !v.includes(this.apiKey)) ? v : null;
+    const safeId = (v: unknown): string | null => safeProviderId(v,this.privateValues);
     let response: Response | undefined;
     let json: unknown;
     const metadata = () => ({ durationMs: Math.max(0, Math.round(performance.now() - started)),
@@ -401,7 +408,11 @@ export class LunaChatClient {
       throw new InferenceError(code, 'chat attempt failed; reservation retained as uncertain spend', { receiptId: receipt.id, httpStatus: response?.status });
     } finally { clearTimeout(timer!); }
 
-    const usage = usageOf(json,this.local);
+    if (!this.local && record(json) && !matchesRequestedModel(safeId(json.model),this.model)) {
+      ledgerWrite(()=>this.ledger.markUncertain(receipt.id,{...metadata(),errorCode:'model_mismatch'}));
+      throw new InferenceError('malformed_response','provider model differs from the priced model; reservation retained',{receiptId:receipt.id});
+    }
+    const usage = usageOf(json,this.pricing);
     let completion: ChatCompletion | undefined;
     let failure: InferenceErrorCode | undefined;
     let reason: string | null = null;
@@ -418,14 +429,14 @@ export class LunaChatClient {
     const providerError = record(json) && record(json.error) ? json.error : null;
     const providerCode = sanitizeProviderCode(providerError?.code ?? providerError?.type);
     const definitiveRejection = !response.ok && response.status >= 400 && response.status < 500
-      && providerCode !== undefined && (!this.apiKey || !providerCode.includes(this.apiKey));
+      && providerCode !== undefined && !containsPrivate(providerCode,this.privateValues);
     const finalReceipt = ledgerWrite(() => usage ? this.ledger.settle(receipt.id, {
       ...metadata(), httpStatus: response.status, settledMicro: usage.cost, ...usage.tokens,
       modelReturned: record(json) ? safeId(json.model) : null, providerResponseId: record(json) ? safeId(json.id) : null, errorCode: reason,
     }) : definitiveRejection && (!record(json) || !Object.hasOwn(json, 'usage'))
       ? this.ledger.release(receipt.id, { ...metadata(), errorCode: reason! })
       : this.ledger.markUncertain(receipt.id, { ...metadata(), errorCode: reason ?? 'usage_missing' }));
-    if (failure || !completion) throw new InferenceError(failure ?? 'malformed_response', 'provider did not return a usable chat answer', { receiptId: receipt.id, httpStatus: response.status, chatDiagnostics: chatFailureDiagnostics(json), ...(providerCode && (!this.apiKey || !providerCode.includes(this.apiKey)) ? {providerCode} : {}) });
+    if (failure || !completion) throw new InferenceError(failure ?? 'malformed_response', 'provider did not return a usable chat answer', { receiptId: receipt.id, httpStatus: response.status, chatDiagnostics: chatFailureDiagnostics(json), ...(providerCode && !containsPrivate(providerCode,this.privateValues) ? {providerCode} : {}) });
     if (usage) completion.usage = { prompt_tokens: usage.tokens.inputTokens, completion_tokens: usage.tokens.outputTokens,
       total_tokens: usage.tokens.inputTokens + usage.tokens.outputTokens,
       prompt_tokens_details: { cached_tokens: usage.tokens.cachedInputTokens } };

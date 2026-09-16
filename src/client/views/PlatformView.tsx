@@ -26,7 +26,7 @@ export function PlatformView({ ctx }: { ctx: ViewContext }) {
   },[native,ov.identity.subject]);
 
   return (<>
-    <PageHeading eyebrow="Powered by Kamiwaza" title="Platform & evidence" description="Inspect the original sources, connected tools, and usage behind this workspace." />
+    <PageHeading title="Platform & evidence" description="Inspect this workroom’s source archives, connected tools, and model usage." />
     <WorkspaceTabs label="Platform workspace" value={section} onChange={setSection} items={[{id:'archive',label:'Evidence archive'},{id:'connections',label:'Connections & tools'},{id:'usage',label:'Usage & records'}]} />
     <div className={`layout platform-layout platform-${section}`}>
       <div className="platform-catalog" hidden={section !== 'archive'}>

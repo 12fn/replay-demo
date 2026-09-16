@@ -1,0 +1,11 @@
+/** Short native objective-controller check; deliberately passive synthetic player, no inference. */
+import fs from 'node:fs';import assert from 'node:assert/strict';import {nativeAppClient} from './native-app-client';
+const version=process.argv[2];assert(version&&/^\d+\.\d+\.\d+$/.test(version));const out=`evidence/soak/native-objective-pulse-${version}.json`;assert(!fs.existsSync(out));
+const c=await nativeAppClient(),j=async(p:string,b?:unknown)=>(await c.request(p,b)).json() as Promise<any>;let id:string|undefined;
+try{const build=await j('/replay-build.json');assert.equal(build.version,version);await j('/api/overview');const before=(await j('/api/agents/tools')).budget;
+ const row=await j('/api/exercises',{name:'Automated objective-controller pulse · passive fixture',scenarioId:'crosscurrent-objectives/1'});id=row.id;
+ for(let n=0;n<20;n++){await new Promise(r=>setTimeout(r,500));const o=await j('/api/overview');if(o.state.tick>=65)break;}
+ await j(`/api/exercises/${id}/finish`,{});const bundle=await j('/api/review/export.json'),events=bundle.payload.events,decisions=events.filter((e:any)=>e.kind==='scripted_decision'&&e.details.controller==='objectives/1'),commands=events.filter((e:any)=>e.kind==='command'&&e.details.origin==='scripted-objectives');
+ assert(decisions.length>0);assert(commands.length>0);assert(decisions.every((e:any)=>e.tick%45===0));for(const d of decisions)assert(commands.some((c:any)=>c.details.commandId===d.details.commandId));
+ const after=(await j('/api/agents/tools')).budget;assert.equal(after.requestsUsed,before.requestsUsed);const proof={at:new Date().toISOString(),build,exerciseId:id,activity:'passive synthetic player; no human or AI-player trial',tick:bundle.payload.engine.tick,fingerprint:bundle.payload.engine.fingerprint,bundleSha256:bundle.sha256,decisions:decisions.map((e:any)=>({id:e.id,tick:e.tick,category:e.details.category,commandId:e.details.commandId})),commands:commands.map((e:any)=>({id:e.id,tick:e.tick,intent:e.details.intent,commandId:e.details.commandId})),newPaidRequests:0};fs.writeFileSync(out,JSON.stringify(proof,null,2),{flag:'wx'});console.log(JSON.stringify(proof));
+}finally{if(id)try{await j(`/api/exercises/${id}/finish`,{});}catch{}await c.close();}

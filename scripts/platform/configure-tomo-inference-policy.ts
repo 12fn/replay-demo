@@ -1,0 +1,8 @@
+/** Disable incidental model work in the private Tomo runtime through native extension configuration. */
+import fs from 'node:fs';import {execFileSync} from 'node:child_process';import {operatorClient} from './operator-client';import type {KamiwazaClient} from '../../src/platform';
+const artifact='evidence/platform/tomo-inference-policy-1.json';if(fs.existsSync(artifact))throw new Error('Policy receipt exists');
+const cr=JSON.parse(execFileSync('podman',['machine','ssh','kamiwaza-harness-poc','sudo k0s kubectl get kext replay-tomo -n kamiwaza-extensions -o json'],{encoding:'utf8',stdio:['ignore','pipe','pipe']}));
+const api=cr.spec.services.find((s:any)=>s.name==='api-backend');if(!api||!Array.isArray(api.env))throw new Error('Native API service env not found');
+const values={SPECULATIVE_PROMPT_CACHE_ENABLED:'false',CONTEXT_COMPACTION_MODE:'off',CONTEXT_COMPACTION_WARM_CANDIDATES_ENABLED:'false',AGENT_ROUTING_ENABLED:'false',AGENT_PROVIDER_MAX_RETRIES:'0',PI_UNKNOWN_MODEL_MAX_OUTPUT_TOKENS:'1600'};
+const env=api.env.filter((e:any)=>!Object.hasOwn(values,e.name));for(const[name,value]of Object.entries(values))env.push({name,value});
+const o=await operatorClient();try{const r=await(o.resolved.platformClient as KamiwazaClient).request({method:'PATCH',path:'/extensions/replay-tomo',body:{services:[{name:'api-backend',env}]}});const proof={at:new Date().toISOString(),changed:values,otherEnvEntriesPreserved:api.env.filter((e:any)=>!Object.hasOwn(values,e.name)).length,receipt:r.receipt,scope:'Startup settings; live policy verification and conversation remain separate. No inference requested.'};fs.writeFileSync(artifact,JSON.stringify(proof,null,2)+'\n',{flag:'wx'});console.log(JSON.stringify(proof));}finally{o.sessions.close();}

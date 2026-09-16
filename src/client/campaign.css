@@ -1,0 +1,56 @@
+/* Optional practice campaign panel. Complements styles.css (uses .panel, .btn, .tag, .meter, .stat);
+   no overrides of existing rules. Dark tone to sit beside the Objectives panel. */
+
+.campaign-panel .panel-body { gap: 10px; }
+
+.campaign-status { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; font-size: 13px; }
+.campaign-status .tag { text-transform: uppercase; letter-spacing: 0.04em; }
+.campaign-name { font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100%; }
+
+.campaign-mission { display: flex; flex-direction: column; gap: 3px; font-size: 13px; }
+.campaign-mission-title { font-weight: 600; }
+.campaign-mission-sub { font-size: 12px; color: var(--text-dark-muted); }
+
+.campaign-progress { display: flex; flex-direction: column; gap: 5px; }
+.campaign-progress-row { display: flex; justify-content: space-between; gap: 8px; font-size: 12px; color: var(--text-dark-muted); }
+.campaign-progress-row strong { color: var(--text-dark); font-weight: 600; font-variant-numeric: tabular-nums; }
+
+.campaign-transition { display: flex; gap: 8px; align-items: flex-start; padding: 8px 10px; border-radius: 8px; font-size: 13px; line-height: 1.4;
+  background: rgba(47, 163, 182, 0.14); border: 1px solid rgba(47, 163, 182, 0.4); color: var(--accent); margin: 0; }
+.campaign-transition svg { flex: none; margin-top: 2px; }
+.campaign-transition-actions { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 6px; }
+
+.campaign-stalled { display: flex; gap: 8px; align-items: flex-start; padding: 8px 10px; border-radius: 8px; font-size: 13px; line-height: 1.4;
+  background: rgba(217, 164, 65, 0.14); border: 1px solid rgba(217, 164, 65, 0.4); color: var(--warning); margin: 0; }
+.campaign-stalled svg { flex: none; margin-top: 2px; }
+
+.campaign-ended { font-size: 13px; color: var(--text-dark-muted); margin: 0; }
+
+.campaign-controls { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+.campaign-follow { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; color: var(--text-dark-muted); cursor: pointer; }
+.campaign-follow input { margin: 0; accent-color: var(--teal); }
+
+.campaign-start { display: flex; gap: 8px; align-items: center; }
+.campaign-start .input { flex: 1; }
+
+.campaign-fine { margin: 0; font-size: 12px; line-height: 1.45; color: var(--text-dark-muted); }
+.campaign-fine strong { color: var(--text-dark); font-weight: 600; }
+
+.campaign-missions { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 3px; font-size: 12px; }
+.campaign-missions li { display: flex; justify-content: space-between; gap: 8px; padding: 4px 8px; border-radius: 6px; background: var(--navy-600); border: 1px solid var(--line-dark); }
+.campaign-missions li.is-active { border-color: rgba(47, 163, 182, 0.55); }
+.campaign-missions .mono { color: var(--text-dark-muted); }
+
+.campaign-panel .btn:focus-visible, .campaign-panel .input:focus-visible, .campaign-follow input:focus-visible {
+  outline: 2px solid var(--teal); outline-offset: 2px; }
+
+@media (max-width: 600px) {
+  .campaign-start { flex-direction: column; align-items: stretch; }
+  .campaign-controls { flex-direction: column; align-items: stretch; }
+}
+
+.campaign-control { flex:none; margin:8px 10px 0; }
+.campaign-control[open] { max-height:42vh; overflow:auto; }
+.campaign-control-summary { cursor:pointer; font-size:13px; display:flex; align-items:center; gap:8px; }
+.campaign-control-body { margin-top:8px; display:flex; flex-direction:column; gap:8px; max-width:560px; }
+.campaign-recover { display:flex; flex-direction:column; gap:6px; font-size:13px; }

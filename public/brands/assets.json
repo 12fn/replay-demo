@@ -1,0 +1,16 @@
+{
+  "source": "User-supplied original logo assets, 2026-09-16",
+  "use": "Authorized local app branding; original mark rights retained, no trademark ownership or government endorsement claimed",
+  "files": [
+    {
+      "name": "kamiwaza-mark-green.png",
+      "sha256": "f41daf32c9323d0353ba12262e04392ed2df3461deaa5ccf5e044d83172b3d6e",
+      "bytes": 35658
+    },
+    {
+      "name": "computacenter-wordmark-blue.png",
+      "sha256": "eb23cd722c66b69239136f50369dfbdd80c5ec2e93d8eb3106ce05e3ce01c53b",
+      "bytes": 42840
+    }
+  ]
+}

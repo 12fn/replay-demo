@@ -1,0 +1,27 @@
+/** Short, actual wall-clock native load test. Automated readers, never human pacing evidence. */
+import fs from 'node:fs';import assert from 'node:assert/strict';import {nativeAppClient} from './native-app-client';
+const users=JSON.parse(fs.readFileSync('data/platform/team-qualification-users.json','utf8'));
+const commander=await nativeAppClient(users.find((u:any)=>u.role==='commander')),analyst=await nativeAppClient(users.find((u:any)=>u.role==='intelligence')),instructor=await nativeAppClient();
+const json=async(c:typeof commander,p:string,b?:unknown)=>(await c.request(p,b)).json() as Promise<any>;
+const activity=process.env.REPLAY_LOAD_ACTIVITY==='baseline';
+const duration=120000,samples:{seat:string;ms:number;tick:number;atMs:number}[]=[],seeks:{tick:number;ms:number}[]=[],errors:string[]=[];let id='';
+try{
+ const row=await json(commander,'/api/exercises',{name:activity?'Synthetic qualification · scripted Blue baseline load':'Synthetic qualification · passive two-reader native load'});id=row.id;
+ await json(instructor,'/api/select',{exerciseId:id});const invite=await json(instructor,'/api/team/code',{});await json(analyst,'/api/team/join',{code:invite.code});invite.code='';
+ const before=await json(commander,'/api/agents/tools'),initial=await json(commander,'/api/overview');assert.equal(before.opponent.enabled,false);const start=performance.now();
+ const reader=async(seat:string,client:typeof commander)=>{let n=0;while(performance.now()-start<duration){const begin=performance.now();try{
+   if(seat==='intelligence'&&n>0&&n%20===0){const target=Math.max(1,Math.floor(samples.filter(s=>s.seat==='commander').at(-1)?.tick??1)/2|0),t=performance.now();await json(client,'/api/replay',{tick:target});const historical=await json(client,'/api/overview');assert.equal(historical.state.tick,target);seeks.push({tick:target,ms:performance.now()-t});await json(client,'/api/replay',{tick:null});}
+   const o=await json(client,'/api/overview');
+   if(activity&&seat==='commander'&&n%9===0&&!o.state.spawning){const blue=o.state.players.find((p:any)=>p.side==='blue'),red=o.state.players.find((p:any)=>p.side==='red'),owners=o.state.owners,width=o.state.width;let adjacent=false;for(let t=0;t<owners.length&&!adjacent;t++)if(owners[t]===blue.smallId)adjacent=(t%width+1<width&&owners[t+1]===red.smallId)||(t%width>0&&owners[t-1]===red.smallId)||owners[t-width]===red.smallId||owners[t+width]===red.smallId;
+    if(blue.alive&&blue.troops>100)await json(client,'/api/commands',{side:'blue',idempotencyKey:id+':load:'+n,intent:{type:'attack',targetID:adjacent?red.id:null,troops:Math.floor(blue.troops*.18)},observationReceipt:o.observationReceipt,rationale:'Automated load qualification: scripted18percent baseline action. This is not a human learning response.'});}
+   samples.push({seat,ms:performance.now()-begin,tick:o.state.tick,atMs:performance.now()-start});
+   if(o.exercises.find((e:any)=>e.id===id)?.status!=='running'){errors.push(seat+': exercise ended before the wall-clock test finished');break;}
+ }catch(e){errors.push(seat+': '+String((e as Error).message));break;}n++;await new Promise(r=>setTimeout(r,Math.max(0,500-(performance.now()-begin))));}};
+ await Promise.all([reader('commander',commander),reader('intelligence',analyst)]);
+ const elapsedMs=performance.now()-start,final=await json(commander,'/api/overview'),after=await json(commander,'/api/agents/tools');
+ await json(instructor,`/api/exercises/${id}/finish`,{});const bundle=await json(instructor,'/api/review/export.json');
+ const latencies=samples.map(s=>s.ms).sort((a,b)=>a-b),p=(q:number)=>Math.round(latencies[Math.floor((latencies.length-1)*q)]??0);
+ const expectedTicks=elapsedMs/100,actualTicks=final.state.tick-initial.state.tick;
+ const proof={at:new Date().toISOString(),build:await json(commander,'/replay-build.json'),exerciseId:id,automated:true,humanPlaytest:false,scriptedBlueBaseline:activity,requestedDurationMs:duration,elapsedMs:Math.round(elapsedMs),reads:samples.length,historicalSeeks:seeks.length,latencyMs:{p50:p(.5),p95:p(.95),max:p(1)},clock:{initial:initial.state.tick,final:final.state.tick,actualTicks,expectedTicks,ratio:actualTicks/expectedTicks},errors,seeks,budget:after.budget,newPaidRequests:after.budget.requestsUsed-before.budget.requestsUsed,bundleSha256:bundle.sha256,fingerprint:bundle.payload.engine.fingerprint,limitations:['Requested two minutes of automated load; elapsedMs reports actual coverage. Not a60-minute wall-clock test or human playtest.','No paid model latency during this test.','One commander reader and one intelligence reader; historical seek runs concurrently with the live game.']};
+ fs.mkdirSync('evidence/soak',{recursive:true});fs.writeFileSync(`evidence/soak/native-two-reader-load-${activity?'baseline':'passive'}.json`,JSON.stringify(proof,null,2));fs.writeFileSync(`data/platform/native-load-export-${activity?'baseline':'passive'}.json`,JSON.stringify(bundle));console.log(JSON.stringify(proof));assert.equal(errors.length,0);assert.equal(proof.newPaidRequests,0);assert(actualTicks/expectedTicks>.85,'Clock lost more than15percent of expected ticks');
+}finally{if(id){try{await json(instructor,'/api/select',{exerciseId:id});const o=await json(instructor,'/api/overview');if(o.exercises.find((e:any)=>e.id===id)?.status==='running')await json(instructor,`/api/exercises/${id}/finish`,{});}catch{}}for(const c of [commander,analyst,instructor])await c.close().catch(()=>{});}

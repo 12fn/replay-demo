@@ -1,0 +1,5 @@
+.app-recorder { position: relative; z-index: 40; }
+.app-recorder > .btn { color: var(--muted); background: transparent; border-color: var(--line); }
+.app-recorder .capture-live { background: var(--danger-bg); color: var(--danger); }
+.capture-dialog { position: absolute; top: 44px; right: 0; width: min(360px,calc(100vw - 90px)); padding: 20px; background: var(--surface); color: var(--text); border: 1px solid var(--line); border-radius: 10px; box-shadow: 0 12px 40px #172b3524; display: grid; gap: 12px; }
+.capture-dialog h3 { font-size: 16px; }.capture-dialog p { font-size: 12px; line-height: 1.6; color: var(--muted); }.capture-dialog label { display: grid; gap: 8px; font-size: 12px; }.capture-dialog input { width: 100%; padding: 9px; border: 1px solid var(--border); border-radius: 6px; }.capture-dialog [role=alert] { color: var(--danger); }

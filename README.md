@@ -1,0 +1,68 @@
+# REPLAY — Decisions into Learning
+
+**An AI training and assistance layer for wargaming.**
+
+REPLAY helps instructors and learners use a game as a place to practice decisions: add assistance or opposition, inspect what happened, return to an earlier moment, and try another approach. Its development direction is to bring those capabilities to existing digital and physical games and tailor training to a learner, role, and teaching objective.
+
+The current reference environment uses a pinned OpenFront engine with fictional exercises. The tools built around that environment are the focus of this project.
+
+## What you can use today
+
+- **Assistance and opposition:** optional model-controlled opponents, role-aware context, decision notes, and staff watches while the exercise clock continues.
+- **Review and backtracking:** inspect recorded orders, reports and timelines; distinguish information available at the time from hindsight; replay earlier states.
+- **Source-linked debriefs:** request an AI analysis of a recorded decision, follow its references, and return to the saved result without generating it again.
+- **Alternative practice:** branch from an earlier state while preserving the original record. Branches remain identified as practice informed by the earlier outcome.
+- **Instructor tools:** authored scenarios and learning criteria, versioned review notes, a learner practice history, and authorized JSON/Markdown evidence exports.
+- **Kamiwaza integration:** native identity and workroom permissions, App Garden launch, managed source storage, and explicit local-model or external-API routes.
+
+## Development direction
+
+Planned work includes licensed game-package import, audio/video observations of physical play, editable tabletop digital twins, richer personalized assistance and adversaries, and scenario creation guided by training objectives. Game adapters must preserve the rules, information available to each participant, and the distinction between observed and inferred events. These broader import and physical-capture workflows are not implemented in this release.
+
+## Run a local demonstration
+
+Use **Node 24.5.0** and **pnpm 10.17.1**, matching the container.
+
+```sh
+pnpm install --frozen-lockfile
+pnpm build
+pnpm start
+```
+
+Open **http://127.0.0.1:5181/**. The default local persona mode is for development on loopback. Keep it on the local machine; an externally accessible deployment requires native authentication and a configured HTTPS origin.
+
+For frontend development, run `pnpm dev:api` and `pnpm dev` in separate terminals, then open http://127.0.0.1:5180/.
+
+1. Open **Instructor case** to explore the authored teaching setup, or create a fictional exercise.
+2. Start the exercise, issue an order, and inspect the available reports and staff watches.
+3. Open **Review**, select a recorded decision, and move through its timeline.
+4. Create a practice branch from a point where both sides are still active.
+5. Inspect the review and export tools. Model-generated output requires a separately configured provider; it is not simulated by a fake model response.
+
+Paid inference starts disabled. Configure provider credentials only on the server, outside Git. The application's default ledger reserves calls before execution and caps a fresh local project at **100 requests and USD 5**. An existing deployment has its own persisted usage; cloning this source does not copy its remaining allowance or private records.
+
+## Native Kamiwaza deployment
+
+The event demonstration runs on an ARM64 Spark under Kamiwaza 1.2. Its successful debrief qualification used an external API model. App deployment on a Spark does not imply that the model ran on that Spark's GPU.
+
+See the [operator runbook](docs/operator-runbook.md) for native configuration and the [instructor guide](docs/pilot/instructor-guide.md) for the learning workflow. Configure a real HTTPS origin, trusted native identity validation, workroom permissions, and persistent storage for your own installation. Live credentials, session databases, participant records and private network setup are excluded.
+
+## Verify and contribute
+
+```sh
+pnpm typecheck
+pnpm test
+pnpm build
+```
+
+The [public release notes](PUBLIC-RELEASE.md) identify the source, verification scope, and excluded private historical material. Preserve deterministic replay, branch isolation, perspective filtering, authorization, and citation validation when changing the application. Use synthetic fixtures for tests.
+
+This is a prototype for education and demonstration. Automated checks establish tested software behavior; instructor acceptance and measured learning outcomes remain separate work.
+
+## Source and licenses
+
+This public snapshot preserves application code, required components, synthetic resources, and applicable notices. Private development history, raw provider traces, personal process logs and runtime credentials are excluded. The source archive generated by `pnpm build` uses an explicit file allowlist.
+
+OpenFront is pinned to `0f2ef7c43511cfb413a95e07d364139249d6905d`. See [LICENSE](LICENSE) and [THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md), including applicable AGPL corresponding-source obligations. Supplied Kamiwaza and Computacenter marks identify demonstration partners; their inclusion does not grant trademark rights.
+
+**UNCLASSIFIED · PUBLIC / SYNTHETIC DATA · FOR DEMONSTRATION PURPOSES ONLY**

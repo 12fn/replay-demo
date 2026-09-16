@@ -1,0 +1,46 @@
+{
+  "version": "preset-catalog/1",
+  "seed": "authored-deterministic/preset-catalog/1",
+  "catalogSha256": "8d7992854eff4f3afd795aabf1f5c464dc14b77f6f00f85cd4727e4e68f4e485",
+  "total": 1752,
+  "counts": {
+    "persona": 36,
+    "report": 648,
+    "case": 108,
+    "event": 864,
+    "asset": 27,
+    "glossary": 36,
+    "historical": 3,
+    "lesson": 18,
+    "organization": 9,
+    "red-profile": 3
+  },
+  "relationships": 6801,
+  "files": [
+    {
+      "name": "catalog.json",
+      "bytes": 4144344,
+      "sha256": "9b7cd5b6c6381a819563ab1530396304e4ad4a3e0daa8aa70144c845be7e87ad"
+    },
+    {
+      "name": "records.jsonl",
+      "bytes": 3048492,
+      "sha256": "204f0db4173acd1e96c16bb2c6abae410d15f7d90cc7646522096883560ffc66"
+    },
+    {
+      "name": "relationships.jsonl",
+      "bytes": 859588,
+      "sha256": "5ac24d8fdd3bcd4e4feba77d5ecc53d875ece58eeb1b5fc2958168c95b379d5c"
+    },
+    {
+      "name": "sources.json",
+      "bytes": 2738,
+      "sha256": "dd869c846e02da28f9c8e7b63b9dc21dc216fdde35012d8c52b8d8ccb18246f6"
+    },
+    {
+      "name": "README.md",
+      "bytes": 1250,
+      "sha256": "3bc81d3bf0085ec5f02456fed7b96120f633bf00124dad8690ab308422e88da6"
+    }
+  ]
+}

@@ -1,0 +1,331 @@
+{
+  "schema": "replay.recorded-native-debrief-showcase/1",
+  "provenance": {
+    "origin": "Actual cached debrief retrieved through a fresh app-native session",
+    "retrievedAt": "2026-09-15T18:23:05.745Z",
+    "syntheticExercise": true,
+    "modelOutput": "recorded; no new generation",
+    "reviewStatus": "recorded automated instructor-seat exercise; not independent human validation",
+    "staleAtRetrieval": false,
+    "originalRecordHash": "5a8c0a2daa1a524fcb8f41587700a15955db01c5fc93acbb5de8a0c72806f0c5",
+    "originalArtifactSha256": "c8793610bee4206f509bf05053daf3b5afd70c30d5388dfc59a7718f2a86ebbb",
+    "newModelCalls": 0,
+    "budgetRequestsUsedBefore": 96,
+    "budgetRequestsUsedAfter": 96
+  },
+  "record": {
+    "schema": "replay.debrief-record/1",
+    "exerciseId": "70d107e2-f0e3-414c-bdc8-33e2cc6a9852",
+    "eventId": "5d92726b-61ca-4704-ad73-12d1da7bbe6d",
+    "hash": "5a8c0a2daa1a524fcb8f41587700a15955db01c5fc93acbb5de8a0c72806f0c5",
+    "generatedAt": "2026-09-15T01:15:24.310Z",
+    "debrief": {
+      "headline": {
+        "text": "The order committed 104,678 forces to a boat toward tile 23,122 after unresolved reports about Tidewell and the causeway post.",
+        "citations": [
+          "5d92726b-61ca-4704-ad73-12d1da7bbe6d",
+          "70d107e2-f0e3-414c-bdc8-33e2cc6a9852:crosscurrent-changing-evidence/1:blue-r06"
+        ],
+        "basis": "available-then"
+      },
+      "observations": [
+        {
+          "text": "The application snapshot showed 523,391 uncommitted forces, 8,320 tiles, and 156,800 gold when the order was issued.",
+          "citations": [
+            "5d92726b-61ca-4704-ad73-12d1da7bbe6d:observation"
+          ],
+          "basis": "available-then"
+        }
+      ],
+      "opponentPerspective": [],
+      "tradeoffs": [
+        {
+          "text": "The order committed about one-fifth of displayed uncommitted forces while leaving substantial forces and resources uncommitted.",
+          "citations": [
+            "5d92726b-61ca-4704-ad73-12d1da7bbe6d:observation",
+            "5d92726b-61ca-4704-ad73-12d1da7bbe6d:rationale"
+          ],
+          "basis": "available-then"
+        }
+      ],
+      "questions": [
+        {
+          "text": "What recorded consideration connected the 104,678-force commitment to the unresolved Tidewell and causeway reports?",
+          "citations": [
+            "5d92726b-61ca-4704-ad73-12d1da7bbe6d:rationale",
+            "6f543c6c-253a-4b33-af2a-22df199e3665"
+          ],
+          "basis": "available-then"
+        }
+      ],
+      "nextPractice": [
+        {
+          "text": "Record the uncertainty, commitment level, and a reasoned plan revision when conflicting reports change; these criteria remain provisional.",
+          "citations": [
+            "C3",
+            "C4"
+          ],
+          "basis": "hindsight"
+        }
+      ],
+      "limitations": [
+        {
+          "text": "The criteria are provisional, and the returned snapshot does not establish what the participant read or understood.",
+          "citations": [
+            "SRC-000",
+            "5d92726b-61ca-4704-ad73-12d1da7bbe6d"
+          ],
+          "basis": "available-then"
+        }
+      ]
+    },
+    "markdown": "# Debrief \u00b7 order `5d92726b` \u00b7 tick 973\n\n> Provisional, unreviewed criteria. Evidence-led description, not a mastery score. Fictional abstract game; nothing transfers to real-world tactics or targeting. Reasons come only from what the learner wrote.\n\n**The order committed 104,678 forces to a boat toward tile 23,122 after unresolved reports about Tidewell and the causeway post.** [`5d92726b`, `70d107e2:crosscurrent-changing-evidence/1:blue-r06`]\n\n## Observations\n\n- The application snapshot showed 523,391 uncommitted forces, 8,320 tiles, and 156,800 gold when the order was issued. [`5d92726b:observation`]\n\n## Tradeoffs\n\n- The order committed about one-fifth of displayed uncommitted forces while leaving substantial forces and resources uncommitted. [`5d92726b:observation`, `5d92726b:rationale`]\n\n## Questions for you\n\n- What recorded consideration connected the 104,678-force commitment to the unresolved Tidewell and causeway reports? [`5d92726b:rationale`, `6f543c6c`]\n\n## Next practice\n\n- Record the uncertainty, commitment level, and a reasoned plan revision when conflicting reports change; these criteria remain provisional. _(hindsight)_ [`C3`, `C4`]\n\n## Limitations\n\n- The criteria are provisional, and the returned snapshot does not establish what the participant read or understood. [`SRC-000`, `5d92726b`]\n\n## References\n\n| ID | Kind | Tick | Availability |\n| --- | --- | ---: | --- |\n| `5d92726b` | command | 970 | available-then |\n| `5d92726b:observation` | state | 970 | available-then |\n| `5d92726b:before` | state | 972 | hindsight |\n| `5d92726b:objectives` | state | 970 | available-then |\n| `4b604808` | engine_observation | 973 | hindsight |\n| `804dd068` | engine_observation | 977 | hindsight |\n| `5d92726b:rationale` | rationale | 970 | available-then |\n| `70d107e2:crosscurrent-changing-evidence/1:blue-r01` | report | 0 | available-then |\n| `70d107e2:crosscurrent-changing-evidence/1:blue-r02` | report | 300 | available-then |\n| `70d107e2:crosscurrent-changing-evidence/1:blue-r03` | report | 300 | available-then |\n| `70d107e2:crosscurrent-changing-evidence/1:blue-r04` | report | 600 | available-then |\n| `70d107e2:crosscurrent-changing-evidence/1:blue-r05` | report | 600 | available-then |\n| `70d107e2:crosscurrent-changing-evidence/1:blue-r06` | report | 900 | available-then |\n| `70d107e2:crosscurrent-changing-evidence/1:blue-r07` | report | 900 | available-then |\n| `56111a66` | staff_update | 300 | available-then |\n| `f8380725` | staff_update | 600 | available-then |\n| `6f543c6c` | staff_update | 900 | available-then |\n| `5d92726b:after` | engine_observation | 973 | hindsight |\n| `70d107e2:crosscurrent-changing-evidence/1:blue-r08` | report | 1200 | hindsight |\n| `fb89fbdf` | staff_update | 1200 | hindsight |\n| `C1` | criterion |  | criterion |\n| `C2` | criterion |  | criterion |\n| `C3` | criterion |  | criterion |\n| `C4` | criterion |  | criterion |\n| `C5` | criterion |  | criterion |\n| `C6` | criterion |  | criterion |\n| `C7` | criterion |  | criterion |\n| `SRC-000` | curriculum-source |  | criterion |\n",
+    "references": [
+      {
+        "id": "5d92726b-61ca-4704-ad73-12d1da7bbe6d",
+        "kind": "command",
+        "tick": 970,
+        "availability": "available-then",
+        "content": "Issued boat. Intent {\"type\":\"boat\",\"troops\":104678,\"dst\":23122}. Client returned the application snapshot for tick 970; server admitted at tick 972; recorded as an input at tick 973. This does not establish what the human read or understood."
+      },
+      {
+        "id": "5d92726b-61ca-4704-ad73-12d1da7bbe6d:observation",
+        "kind": "state",
+        "tick": 970,
+        "availability": "available-then",
+        "content": "Own side in the application snapshot returned with the order: 523,391 uncommitted forces, 8320 tiles, 156,800 gold. Snapshot fingerprint 7ab1b3f965eb04e2a16e9ceb6c4cec74a810c1a4b259b04c241b2d1712917fba."
+      },
+      {
+        "id": "5d92726b-61ca-4704-ad73-12d1da7bbe6d:before",
+        "kind": "state",
+        "tick": 972,
+        "availability": "hindsight",
+        "content": "Own side at server admission (not proof of displayed state): 523,502 uncommitted forces, 8316 tiles, 157,000 gold."
+      },
+      {
+        "id": "5d92726b-61ca-4704-ad73-12d1da7bbe6d:objectives",
+        "kind": "state",
+        "tick": 970,
+        "availability": "available-then",
+        "content": "Declared game rules: Hold at least 60% of a station\u2019s marked land tiles to control it. Every 30 seconds, each controlled station earns 1 point; the priority station earns 2 extra. Holding any station with at least 30% of your force capacity in reserve earns 2 more. Priority changes every 3 minutes in the displayed order. At 20 minutes, the higher point total wins; a tie is a draw. Elimination ends play earlier with the surviving side winning. Points describe game outcomes, never learning mastery. Recorded points at tick 970: {\"blue\":15,\"red\":14}. Recorded game points at the observation cutoff; not proof of human attention or a learning score."
+      },
+      {
+        "id": "4b604808-e5fa-4328-bb5c-d2ed88ff5b28",
+        "kind": "engine_observation",
+        "tick": 973,
+        "availability": "hindsight",
+        "content": "Measured effect of this exact input, observed later at tick 973: transport-launched. Facts {\"kind\":\"transport\",\"orderedTile\":23122,\"orderedTroops\":104678,\"troopsBefore\":523495,\"troopsAfter\":418817,\"troopsDelta\":-104678,\"transportsAtSeaAtAttempt\":0,\"transportLimit\":3,\"unitId\":7,\"boatActive\":true,\"boatTile\":22123,\"troopsEmbarked\":104678,\"targetTile\":23122,\"targetOwnerBefore\":null,\"targetOwnerAfter\":null,\"destroyedByEnemy\":false,\"destroyerClientID\":null,\"movesObserved\":0,\"retreatObserved\":false,\"ticksObserved\":0,\"launchTile\":22123}. This is an engine observation; admission alone did not establish completion."
+      },
+      {
+        "id": "804dd068-972f-4cee-b9e3-ef040231b789",
+        "kind": "engine_observation",
+        "tick": 977,
+        "availability": "hindsight",
+        "content": "Measured effect of this exact input, observed later at tick 977: transport-landed. Facts {\"kind\":\"transport\",\"orderedTile\":23122,\"orderedTroops\":104678,\"troopsBefore\":421131,\"troopsAfter\":421131,\"troopsDelta\":0,\"unitId\":7,\"boatActive\":false,\"boatTile\":23122,\"troopsEmbarked\":104678,\"targetTile\":23122,\"targetOwnerBefore\":null,\"targetOwnerAfter\":\"human001\",\"destroyedByEnemy\":false,\"destroyerClientID\":null,\"movesObserved\":3,\"retreatObserved\":false,\"ticksObserved\":4}. This is an engine observation; admission alone did not establish completion."
+      },
+      {
+        "id": "5d92726b-61ca-4704-ad73-12d1da7bbe6d:rationale",
+        "kind": "rationale",
+        "tick": 970,
+        "availability": "available-then",
+        "content": "Participant's contemporaneous statement: \"Authored demo prompt (automated scripted Blue baseline; not a model, player or human decision): Watch alert 6f543c6c-253a-4b33-af2a-22df199e3665 recorded Tidewell reports blue-r06 (disputes blue-r05) and blue-r07 (repeats blue-r05); the conflict is unresolved and the repeat is not corroboration. Continue the same listed naval scripted order without relying on either account.\" citing 70d107e2-f0e3-414c-bdc8-33e2cc6a9852:crosscurrent-changing-evidence/1:blue-r05, 70d107e2-f0e3-414c-bdc8-33e2cc6a9852:crosscurrent-changing-evidence/1:blue-r06, 70d107e2-f0e3-414c-bdc8-33e2cc6a9852:crosscurrent-changing-evidence/1:blue-r07."
+      },
+      {
+        "id": "70d107e2-f0e3-414c-bdc8-33e2cc6a9852:crosscurrent-changing-evidence/1:blue-r01",
+        "kind": "report",
+        "tick": 0,
+        "availability": "available-then",
+        "content": "Lantern Station available (tick 0): Survey notes Lantern Station as available at the start of the exercise. Fictional scenario claim, not measured game state. Source source.blue.survey; observed tick 0; independent; lineage 70d107e2-f0e3-414c-bdc8-33e2cc6a9852:crosscurrent-changing-evidence/1:blue-r01; declared links []. Repeats do not establish independent corroboration."
+      },
+      {
+        "id": "70d107e2-f0e3-414c-bdc8-33e2cc6a9852:crosscurrent-changing-evidence/1:blue-r02",
+        "kind": "report",
+        "tick": 300,
+        "availability": "available-then",
+        "content": "Marsh reserve estimate (tick 300): Survey estimates 40\u201360 reserve units held near Marsh Station. Fictional scenario claim, not measured game state. Source source.blue.survey; observed tick 240; independent; lineage 70d107e2-f0e3-414c-bdc8-33e2cc6a9852:crosscurrent-changing-evidence/1:blue-r02; declared links []. Repeats do not establish independent corroboration."
+      },
+      {
+        "id": "70d107e2-f0e3-414c-bdc8-33e2cc6a9852:crosscurrent-changing-evidence/1:blue-r03",
+        "kind": "report",
+        "tick": 300,
+        "availability": "available-then",
+        "content": "Bulletin: reed-flat reserves (tick 300): Relay bulletin repeats the survey estimate of 40\u201360 reserve units at the reed-flat stop. No new observation. Fictional scenario claim, not measured game state. Source source.blue.bulletin; observed tick 240; derivative; lineage 70d107e2-f0e3-414c-bdc8-33e2cc6a9852:crosscurrent-changing-evidence/1:blue-r02; declared links [{\"kind\":\"derived-from\",\"reportId\":\"70d107e2-f0e3-414c-bdc8-33e2cc6a9852:crosscurrent-changing-evidence/1:blue-r02\"}]. Repeats do not establish independent corroboration."
+      },
+      {
+        "id": "70d107e2-f0e3-414c-bdc8-33e2cc6a9852:crosscurrent-changing-evidence/1:blue-r04",
+        "kind": "report",
+        "tick": 600,
+        "availability": "available-then",
+        "content": "Correction: Marsh reserve estimate (tick 600): Survey corrects its earlier estimate: one group was counted twice. Revised estimate is 15\u201325 reserve units. Supersedes 70d107e2-f0e3-414c-bdc8-33e2cc6a9852:crosscurrent-changing-evidence/1:blue-r02. Fictional scenario claim, not measured game state. Source source.blue.survey; observed tick 540; independent; lineage 70d107e2-f0e3-414c-bdc8-33e2cc6a9852:crosscurrent-changing-evidence/1:blue-r04; declared links [{\"kind\":\"supersedes\",\"reportId\":\"70d107e2-f0e3-414c-bdc8-33e2cc6a9852:crosscurrent-changing-evidence/1:blue-r02\"}]. Repeats do not establish independent corroboration."
+      },
+      {
+        "id": "70d107e2-f0e3-414c-bdc8-33e2cc6a9852:crosscurrent-changing-evidence/1:blue-r05",
+        "kind": "report",
+        "tick": 600,
+        "availability": "available-then",
+        "content": "Causeway post unavailable (tick 600): Liaison account says the east causeway post is unavailable. Fictional scenario claim, not measured game state. Source source.blue.liaison; observed tick 560; independent; lineage 70d107e2-f0e3-414c-bdc8-33e2cc6a9852:crosscurrent-changing-evidence/1:blue-r05; declared links []. Repeats do not establish independent corroboration."
+      },
+      {
+        "id": "70d107e2-f0e3-414c-bdc8-33e2cc6a9852:crosscurrent-changing-evidence/1:blue-r06",
+        "kind": "report",
+        "tick": 900,
+        "availability": "available-then",
+        "content": "Tidewell Station available (tick 900): Survey notes Tidewell Station as available. This conflicts with the liaison account and neither report has been withdrawn. Fictional scenario claim, not measured game state. Source source.blue.survey; observed tick 820; independent; lineage 70d107e2-f0e3-414c-bdc8-33e2cc6a9852:crosscurrent-changing-evidence/1:blue-r06; declared links [{\"kind\":\"disputes\",\"reportId\":\"70d107e2-f0e3-414c-bdc8-33e2cc6a9852:crosscurrent-changing-evidence/1:blue-r05\"}]. Repeats do not establish independent corroboration."
+      },
+      {
+        "id": "70d107e2-f0e3-414c-bdc8-33e2cc6a9852:crosscurrent-changing-evidence/1:blue-r07",
+        "kind": "report",
+        "tick": 900,
+        "availability": "available-then",
+        "content": "Bulletin: causeway post unavailable (tick 900): Relay bulletin repeats the liaison account that the causeway post is unavailable. No new observation. Fictional scenario claim, not measured game state. Source source.blue.bulletin; observed tick 560; derivative; lineage 70d107e2-f0e3-414c-bdc8-33e2cc6a9852:crosscurrent-changing-evidence/1:blue-r05; declared links [{\"kind\":\"derived-from\",\"reportId\":\"70d107e2-f0e3-414c-bdc8-33e2cc6a9852:crosscurrent-changing-evidence/1:blue-r05\"}]. Repeats do not establish independent corroboration."
+      },
+      {
+        "id": "56111a66-d94d-45f8-8ae9-20d3c7d14a56",
+        "kind": "staff_update",
+        "tick": 300,
+        "availability": "available-then",
+        "content": "Staff watch update: Marsh reserve estimate (tick 300) released; Bulletin: reed-flat reserves (tick 300) released \u00b7 repeated claim, not independent corroboration. These are authored scenario claims, not measured game state. Sources describe their own observation ticks."
+      },
+      {
+        "id": "f8380725-4414-4477-9319-d4583601ea8f",
+        "kind": "staff_update",
+        "tick": 600,
+        "availability": "available-then",
+        "content": "Staff watch update: Correction: Marsh reserve estimate (tick 600) supersedes Marsh reserve estimate (tick 300); Causeway post unavailable (tick 600) released. These are authored scenario claims, not measured game state. Sources describe their own observation ticks."
+      },
+      {
+        "id": "6f543c6c-253a-4b33-af2a-22df199e3665",
+        "kind": "staff_update",
+        "tick": 900,
+        "availability": "available-then",
+        "content": "Staff watch update: Tidewell Station available (tick 900) released \u00b7 unresolved conflict; Bulletin: causeway post unavailable (tick 900) released \u00b7 unresolved conflict. These are authored scenario claims, not measured game state. Sources describe their own observation ticks."
+      },
+      {
+        "id": "5d92726b-61ca-4704-ad73-12d1da7bbe6d:after",
+        "kind": "engine_observation",
+        "tick": 973,
+        "availability": "hindsight",
+        "content": "Own side after input admission (not confirmation of a completed effect) at tick 973: 418,817 uncommitted forces, 8313 tiles, 157,100 gold."
+      },
+      {
+        "id": "70d107e2-f0e3-414c-bdc8-33e2cc6a9852:crosscurrent-changing-evidence/1:blue-r08",
+        "kind": "report",
+        "tick": 1200,
+        "availability": "hindsight",
+        "content": "Later report Lamp-house holder unclear (tick 1200): Liaison account could not tell which side holds the lamp-house."
+      },
+      {
+        "id": "fb89fbdf-79d6-4650-80ee-873724f25dc2",
+        "kind": "staff_update",
+        "tick": 1200,
+        "availability": "hindsight",
+        "content": "Later staff watch update (tick 1200): Lamp-house holder unclear (tick 1200) released. These are authored scenario claims, not measured game state. Sources describe their own observation ticks."
+      },
+      {
+        "id": "C1",
+        "kind": "criterion",
+        "availability": "criterion",
+        "content": "Evidence currency (OBJ-1): Use the report current at the order tick; treat superseded reports as history."
+      },
+      {
+        "id": "C2",
+        "kind": "criterion",
+        "availability": "criterion",
+        "content": "Provenance (OBJ-2): Trace statements about the opponent to a specific report, tick, or map observation; separate observation from inference."
+      },
+      {
+        "id": "C3",
+        "kind": "criterion",
+        "availability": "criterion",
+        "content": "Uncertainty handling (OBJ-3): State what is unknown and take a recorded action about it."
+      },
+      {
+        "id": "C4",
+        "kind": "criterion",
+        "availability": "criterion",
+        "content": "Resource commitment reasoning (OBJ-4): Choose a commitment level and explain what is retained and why."
+      },
+      {
+        "id": "C5",
+        "kind": "criterion",
+        "availability": "criterion",
+        "content": "Decision explanation (contemporaneous) (OBJ-5): Write a decision statement at the time of the order."
+      },
+      {
+        "id": "C6",
+        "kind": "criterion",
+        "availability": "criterion",
+        "content": "Revision on material change (OBJ-6): At a report release or watch result, change the plan or explicitly keep it with a reason."
+      },
+      {
+        "id": "C7",
+        "kind": "criterion",
+        "availability": "criterion",
+        "content": "Counterfactual practice (branch only) (OBJ-7): State an assumption, branch from a recorded tick, play a different legal order, compare honestly."
+      },
+      {
+        "id": "SRC-000",
+        "kind": "curriculum-source",
+        "availability": "criterion",
+        "status": "none",
+        "content": "No reviewed sources [status: none]"
+      }
+    ],
+    "availableThenIds": [
+      "5d92726b-61ca-4704-ad73-12d1da7bbe6d",
+      "5d92726b-61ca-4704-ad73-12d1da7bbe6d:observation",
+      "5d92726b-61ca-4704-ad73-12d1da7bbe6d:objectives",
+      "5d92726b-61ca-4704-ad73-12d1da7bbe6d:rationale",
+      "70d107e2-f0e3-414c-bdc8-33e2cc6a9852:crosscurrent-changing-evidence/1:blue-r01",
+      "70d107e2-f0e3-414c-bdc8-33e2cc6a9852:crosscurrent-changing-evidence/1:blue-r02",
+      "70d107e2-f0e3-414c-bdc8-33e2cc6a9852:crosscurrent-changing-evidence/1:blue-r03",
+      "70d107e2-f0e3-414c-bdc8-33e2cc6a9852:crosscurrent-changing-evidence/1:blue-r04",
+      "70d107e2-f0e3-414c-bdc8-33e2cc6a9852:crosscurrent-changing-evidence/1:blue-r05",
+      "70d107e2-f0e3-414c-bdc8-33e2cc6a9852:crosscurrent-changing-evidence/1:blue-r06",
+      "70d107e2-f0e3-414c-bdc8-33e2cc6a9852:crosscurrent-changing-evidence/1:blue-r07",
+      "56111a66-d94d-45f8-8ae9-20d3c7d14a56",
+      "f8380725-4414-4477-9319-d4583601ea8f",
+      "6f543c6c-253a-4b33-af2a-22df199e3665"
+    ],
+    "hindsightIds": [
+      "5d92726b-61ca-4704-ad73-12d1da7bbe6d:before",
+      "4b604808-e5fa-4328-bb5c-d2ed88ff5b28",
+      "804dd068-972f-4cee-b9e3-ef040231b789",
+      "5d92726b-61ca-4704-ad73-12d1da7bbe6d:after",
+      "70d107e2-f0e3-414c-bdc8-33e2cc6a9852:crosscurrent-changing-evidence/1:blue-r08",
+      "fb89fbdf-79d6-4650-80ee-873724f25dc2"
+    ],
+    "receipt": {
+      "id": "377d48a7-fc68-4bf8-9d72-a6eb1e795047",
+      "status": "completed",
+      "modelRequested": "gpt-5.6-luna",
+      "modelReturned": "gpt-5.6-luna",
+      "settledUsd": 0.002085,
+      "createdAt": "2026-09-15T01:15:15.051Z"
+    }
+  },
+  "reviews": [
+    {
+      "schema": "replay.review-feedback/1",
+      "id": "506a0668-d315-4890-896e-054e855d6e2e",
+      "exerciseId": "70d107e2-f0e3-414c-bdc8-33e2cc6a9852",
+      "eventId": "5d92726b-61ca-4704-ad73-12d1da7bbe6d",
+      "hash": "5a8c0a2daa1a524fcb8f41587700a15955db01c5fc93acbb5de8a0c72806f0c5",
+      "section": "headline",
+      "index": 0,
+      "disposition": "edited",
+      "criterionId": "C1",
+      "criterionName": "Evidence currency",
+      "criterionObjective": "OBJ-1",
+      "explanation": "Automated demo review (scripted instructor action; unscored; not a human instructor judgment). It exercises the correction path for this recorded order.",
+      "editedText": "Automated demo correction: this order rested on authored fictional reports, one repeating another and two in unresolved conflict. The record shows what was cited and when, not whether the choice was sound.",
+      "nextPractice": "Automated demo next practice: from tick 970, commit a smaller 10% share while the cited reports remain unresolved, then compare both records in review.",
+      "recordedAt": "2026-09-15T01:15:24.600Z",
+      "originalText": "The order committed 104,678 forces to a boat toward tile 23,122 after unresolved reports about Tidewell and the causeway post.",
+      "originalCitations": [
+        "5d92726b-61ca-4704-ad73-12d1da7bbe6d",
+        "70d107e2-f0e3-414c-bdc8-33e2cc6a9852:crosscurrent-changing-evidence/1:blue-r06"
+      ]
+    }
+  ]
+}

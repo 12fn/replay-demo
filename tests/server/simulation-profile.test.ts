@@ -1,0 +1,6 @@
+import {expect,it} from 'vitest';import fs from 'node:fs';import os from 'node:os';import path from 'node:path';import {GameService} from '../../src/server/service';import {SIMULATION_PROFILE} from '../../src/engine/engine';
+it('persists explicit profiles for new exercises and branches while leaving legacy source records unchanged',async()=>{const dir=fs.mkdtempSync(path.join(os.tmpdir(),'replay-profile-'));let s=new GameService(dir);try{
+ const original=await s.create('Versioned','plains');const w=s.world(original.id);for(let n=0;n<20;n++)s.tick(w);expect(s.record(original.id).simulationProfile).toBe(SIMULATION_PROFILE);
+ delete w.row.options.simulationProfile;s.store.putExercise(w.row);const legacy=JSON.stringify(s.record(original.id));const branch=await s.branch(original.id,15,'blue');expect(s.record(branch.id).simulationProfile).toBe(SIMULATION_PROFILE);expect(JSON.stringify(s.record(original.id))).toBe(legacy);
+ const event=s.store.events(branch.id).find(e=>e.kind==='branch_created');expect(event?.details.parentSimulationProfile).toBe('legacy-unversioned');s.close();s=new GameService(dir);await s.init(false);expect(s.record(branch.id).simulationProfile).toBe(SIMULATION_PROFILE);expect(JSON.stringify(s.record(original.id))).toBe(legacy);
+}finally{s.close();fs.rmSync(dir,{recursive:true,force:true});}});

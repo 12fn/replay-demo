@@ -1,0 +1,21 @@
+{
+  "schema": "replay.showcase-manifest/1",
+  "version": "2026-09-15.1",
+  "fixtureSha256": "13d0f1619502f883920d2d99f9a87c1af5fbe439d0426c74ee43872f238e4c05",
+  "recordedProofSha256": "3b66b84bbfa4bce93c6c0ee4101495943afc9c10d8ea2b95a11144fdcc16bbeb",
+  "recordedDebriefSha256": "953be7b6348f7486ec63416b642d708757815423090105114dab95a98d51be2b",
+  "fixture": {
+    "events": 11,
+    "reports": 8,
+    "turns": 650,
+    "reviewTick": 320,
+    "forkTick": 319,
+    "selectedEventId": "showcase-order-320"
+  },
+  "archivedTrial": {
+    "id": "trial:dual-ae785c60-ba1c-4e7d-9eb5-09c8487a3564",
+    "label": "Actual trial taiwan-sol-blue-opus-red-full-20260915"
+  },
+  "sourceClass": "authored-synthetic",
+  "paidCalls": 0
+}

@@ -1,0 +1,118 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "SYNTHETIC catalog publisher unit-test contract; not an inspected installation",
+    "version": "synthetic/1"
+  },
+  "paths": {
+    "/catalog/datasets/": {
+      "get": {},
+      "post": {
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DatasetCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {}
+        }
+      }
+    },
+    "/catalog/datasets/by-urn": {
+      "get": {}
+    },
+    "/catalog/datasets/v2/{dataset_urn}/objects": {
+      "get": {
+        "parameters": [
+          {
+            "name": "state",
+            "schema": {
+              "enum": [
+                "live",
+                "all"
+              ]
+            }
+          }
+        ]
+      },
+      "post": {
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/Body_create_dataset_object_v2_catalog_datasets_v2__dataset_urn__objects_post"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {}
+        }
+      }
+    },
+    "/catalog/datasets/v2/{dataset_urn}/objects/{item_id}/content": {
+      "get": {}
+    }
+  },
+  "components": {
+    "schemas": {
+      "DatasetCreate": {
+        "properties": {
+          "name": {},
+          "platform": {},
+          "environment": {},
+          "description": {},
+          "tags": {},
+          "properties": {},
+          "dataset_schema": {},
+          "storage": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/DatasetStorageRequest"
+              }
+            ]
+          },
+          "writable": {}
+        }
+      },
+      "DatasetStorageRequest": {
+        "properties": {
+          "backend": {
+            "anyOf": [
+              {
+                "enum": [
+                  "file",
+                  "object"
+                ]
+              }
+            ]
+          }
+        }
+      },
+      "Body_create_dataset_object_v2_catalog_datasets_v2__dataset_urn__objects_post": {
+        "properties": {
+          "file": {
+            "type": "string",
+            "format": "binary"
+          },
+          "logical_path": {
+            "type": "string"
+          }
+        }
+      },
+      "DatasetContentItemResponse": {
+        "required": [
+          "item_id",
+          "logical_path",
+          "etag",
+          "size_bytes",
+          "state"
+        ]
+      }
+    }
+  }
+}

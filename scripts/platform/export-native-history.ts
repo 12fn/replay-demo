@@ -1,0 +1,3 @@
+/** Capture canonical records via normal instructor login for local compatibility verification. */
+import fs from 'node:fs';import {nativeAppClient} from './native-app-client';
+const c=await nativeAppClient();try{const o=await(await c.request('/api/overview')).json() as any;const records=[];for(const e of o.exercises){if(e.status==='running')continue;const r=await(await c.request('/api/record/'+e.id)).json();records.push({id:e.id,name:e.name,status:e.status,record:r});}fs.writeFileSync('data/platform/native-history-records.json',JSON.stringify(records));console.log(JSON.stringify({records:records.length,navalIntents:records.reduce((n,x)=>n+x.record.turns.flatMap((t:any)=>t.intents).filter((i:any)=>i.type==='boat').length,0)}));}finally{await c.close();}

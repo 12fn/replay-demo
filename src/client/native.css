@@ -1,0 +1,16 @@
+/* Native identity gate shares the same light, high-contrast reading surface. */
+.native-gate { min-height: 100%; display: grid; place-items: center; padding: 32px; background: #eef3f1; }
+.native-card { width: min(460px,100%); background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 38px; box-shadow: 0 18px 60px #172b3510; }
+.native-kicker { display: inline-flex; align-items: center; gap: 7px; font-size: 11px; letter-spacing: .07em; text-transform: uppercase; color: var(--accent); margin-bottom: 18px; font-weight: 650; }
+.native-lead { font-size: 20px; line-height: 1.5; letter-spacing: -.02em; margin-bottom: 12px; color: var(--text); }
+.native-hint { color: var(--muted); font-size: 13px; margin-bottom: 28px; }
+.native-form { display: grid; gap: 18px; }
+.native-field { display: grid; gap: 8px; font-size: 12px; color: var(--text); font-weight: 550; }
+.native-field input { width: 100%; min-width: 0; padding: 11px 12px; border: 1px solid #a9b9c2; border-radius: 7px; background: #fff; color: var(--text); }
+.native-actions { display: flex; align-items: center; gap: 10px; margin-top: 4px; }
+.native-form .native-actions .btn { width: 100%; min-height: 43px; }
+.native-error { display: flex; align-items: flex-start; gap: 8px; color: var(--danger); font-size: 13px; }
+.native-fine { color: var(--muted); font-size: 11px; margin-top: 22px; line-height: 1.6; }
+.native-denied { border-color: #dcb9b4; }.native-denied .native-kicker { color: var(--danger); }
+.badge-access { background: var(--accent-soft); color: var(--accent); }.badge-access.is-readonly { background: var(--warning-bg); color: var(--warning); }.badge-access.is-blocked { background: var(--danger-bg); color: var(--danger); }
+@media(max-width: 600px) { .native-gate { padding: 20px; }.native-card { padding: 26px; } }

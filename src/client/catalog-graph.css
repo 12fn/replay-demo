@@ -1,0 +1,94 @@
+/* CatalogGraphPanel · imported only by src/client/components/CatalogGraphPanel.tsx. All classes are cgraph-* scoped.
+   Shared light surfaces; source classes use semantic colors. */
+
+.cgraph { color: var(--text-dark); }
+.platform-catalog { grid-column: 1 / -1; min-width: 0; }
+.cgraph .panel-body { display: flex; flex-direction: column; gap: 10px; }
+.cgraph p { margin: 0; }
+.cgraph ul { margin: 0; padding: 0; list-style: none; }
+.cgraph code { font-family: var(--mono); font-size: 11px; word-break: break-all; }
+.cgraph :focus-visible { outline: 2px solid var(--teal); outline-offset: 2px; }
+.cgraph .inline-error { color: var(--danger); }
+.cgraph .empty { color: var(--text-dark-muted); }
+.cgraph-count, .cgraph-hint { font-size: 12px; color: var(--text-dark-muted); }
+.cgraph-scope { font-size: 12.5px; line-height: 1.45; padding: 6px 10px; border-left: 3px solid var(--teal); background: rgba(47, 163, 182, 0.08); border-radius: 0 6px 6px 0; }
+.cgraph-scope strong { color: var(--text-dark); }
+
+.cgraph-meta { font-size: 12px; color: var(--text-dark-muted); }
+.cgraph-meta summary { cursor: pointer; }
+.cgraph-meta[open] { display: flex; flex-direction: column; gap: 4px; }
+.cgraph-meta[open] > summary { margin-bottom: 2px; }
+
+.cgraph-search { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 8px; }
+.cgraph-search label { display: flex; flex-direction: column; gap: 3px; font-size: 11px; color: var(--text-dark-muted); text-transform: uppercase; letter-spacing: 0.03em; }
+.cgraph-search input, .cgraph-search select { font: inherit; font-size: 13px; text-transform: none; letter-spacing: 0; color: var(--text-dark); background: var(--navy-800); border: 1px solid var(--line-dark); border-radius: var(--radius); padding: 5px 8px; min-width: 0; }
+.cgraph-search input[type='search'] { width: 18ch; }
+.cgraph-search input:disabled { opacity: 0.45; }
+.cgraph-quick { display: flex; flex-wrap: wrap; gap: 6px; }
+.cgraph-quick .is-on { background: rgba(47, 163, 182, 0.24); border-color: var(--teal); }
+
+.cgraph-body { display: grid; grid-template-columns: minmax(240px, 1fr) minmax(0, 2fr); gap: 16px; align-items: start; }
+@media (max-width: 900px) { .cgraph-body { grid-template-columns: minmax(0, 1fr); } }
+.cgraph-results, .cgraph-detail { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.cgraph-results ul, .cgraph-relations { display: flex; flex-direction: column; gap: 4px; }
+.cgraph-results ul { max-height: 520px; overflow-y: auto; }
+
+.cgraph-item { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; width: 100%; text-align: left; font: inherit; color: inherit; background: var(--navy-800); border: 1px solid var(--line-dark); border-radius: var(--radius); padding: 6px 9px; cursor: pointer; }
+.cgraph-item:hover { background: var(--navy-600); }
+.cgraph-item.is-selected { border-color: var(--teal); background: rgba(47, 163, 182, 0.12); }
+.cgraph-item-head, .cgraph-rel { display: inline-flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.cgraph-type { font-family: var(--mono); font-size: 11px; color: var(--text-dark-muted); }
+.cgraph-label { font-weight: 600; font-size: 13px; overflow-wrap: anywhere; }
+/* Trial context: the full name must wrap, never clamp or ellipsize, so v1/v2 and seat-swap suffixes stay visible. */
+.cgraph-context { display: flex; flex-direction: column; gap: 1px; font-size: 12px; min-width: 0; max-width: 100%; }
+.cgraph-trial { color: var(--text-dark); overflow-wrap: anywhere; white-space: normal; }
+.cgraph-context-key { font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.03em; color: var(--text-dark-muted); }
+.cgraph-context-facts { display: inline-flex; flex-wrap: wrap; gap: 2px 10px; color: var(--text-dark-muted); }
+.cgraph-seat-blue { color: var(--blue-soft); }
+.cgraph-seat-red { color: var(--danger); }
+.cgraph-summary { font-size: 12px; color: var(--text-dark-muted); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.cgraph-rel code { color: var(--accent); }
+.cgraph-relations li { display: flex; flex-direction: column; gap: 2px; }
+.cgraph-relations .cgraph-meta { padding-left: 10px; }
+.cgraph-pager { display: flex; gap: 6px; }
+
+.cgraph-class { font-size: 10px; padding: 1px 6px; }
+.cgraph-class-actual-recorded { background: rgba(79, 168, 119, 0.18); color: var(--green); }
+.cgraph-class-derived-observation { background: rgba(47, 163, 182, 0.2); color: var(--accent); }
+.cgraph-class-authored-synthetic { background: rgba(217, 164, 65, 0.18); color: var(--warning); }
+.cgraph-class-public-reference { background: rgba(44, 132, 176, 0.25); color: var(--blue-soft); }
+
+.cgraph-node { display: flex; flex-direction: column; gap: 8px; border: 1px solid var(--line-dark); border-radius: var(--radius); background: var(--navy-800); padding: 10px 12px; }
+.cgraph-node header { display: flex; flex-direction: column; gap: 4px; }
+.cgraph-node header p { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.cgraph-node h3 { margin: 0; font-size: 15px; }
+.cgraph-node h4 { margin: 4px 0 0; font-size: 13px; display: flex; gap: 8px; align-items: baseline; }
+.cgraph-node-context { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-start; gap: 6px 10px; padding: 5px 8px; border-left: 3px solid var(--teal); background: rgba(47, 163, 182, 0.08); border-radius: 0 6px 6px 0; }
+.cgraph-node-context .cgraph-context { flex: 1 1 220px; font-size: 12.5px; }
+.cgraph-review { display: flex; flex-direction: column; gap: 6px; padding: 8px 10px; border: 1px solid var(--line-dark); border-radius: var(--radius); background: rgba(0, 0, 0, 0.16); }
+.cgraph-review h4 { margin: 0; }
+.cgraph-rationale { margin: 0; padding: 6px 10px; font-size: 13px; line-height: 1.5; white-space: pre-wrap; overflow-wrap: anywhere; color: var(--text-dark); border-left: 3px solid rgba(143, 225, 236, 0.6); background: rgba(47, 163, 182, 0.06); }
+.cgraph-review-nav { display: flex; flex-wrap: wrap; gap: 6px; }
+.cgraph-fiction { font-size: 12px; color: var(--warning); padding: 4px 8px; border-left: 3px solid rgba(217, 164, 65, 0.7); background: rgba(217, 164, 65, 0.08); }
+.cgraph-prov, .cgraph-props { margin: 0; display: flex; flex-direction: column; gap: 3px; font-size: 12px; }
+.cgraph-prov div, .cgraph-props div { display: grid; grid-template-columns: 110px minmax(0, 1fr); gap: 8px; }
+.cgraph-prov dt, .cgraph-props dt { color: var(--text-dark-muted); overflow-wrap: anywhere; }
+.cgraph-prov dd, .cgraph-props dd { margin: 0; overflow-wrap: anywhere; }
+
+.cgraph-source { display: flex; flex-direction: column; align-items: flex-start; gap: 6px; }
+.cgraph-source.is-open { align-items: stretch; border: 1px solid var(--line-dark); border-radius: var(--radius); padding: 8px 10px; }
+.cgraph-source-head { display: flex; justify-content: space-between; align-items: center; gap: 8px; font-size: 13px; }
+.cgraph-source-notice { font-size: 12px; line-height: 1.45; padding: 4px 8px; border-left: 3px solid rgba(79, 168, 119, 0.7); background: rgba(79, 168, 119, 0.08); }
+.cgraph-source-notice strong { color: var(--text-dark); }
+.cgraph-source-text { margin: 0; max-height: 360px; overflow: auto; padding: 8px 10px; font-family: var(--mono); font-size: 11.5px; line-height: 1.45; white-space: pre-wrap; overflow-wrap: anywhere; color: var(--text-dark); background: rgba(0, 0, 0, 0.28); border: 1px solid var(--line-dark); border-radius: var(--radius); }
+
+.cgraph-ego { width: 100%; max-width: 440px; align-self: center; }
+.cgraph-ego line { stroke: rgba(140, 170, 205, 0.35); stroke-width: 1; }
+.cgraph-ego text { font-size: 10px; fill: var(--text-dark); paint-order: stroke; stroke: var(--navy-800); stroke-width: 3px; font-family: var(--font); }
+.cgraph-ego-node { cursor: pointer; }
+.cgraph-ego-node:hover circle { stroke: var(--text-dark); stroke-width: 2; }
+.cgraph-ego-center { stroke: var(--text-dark); stroke-width: 2; }
+.cgraph-dot-actual-recorded { fill: #4fa877; }
+.cgraph-dot-derived-observation { fill: #2fa3b6; }
+.cgraph-dot-authored-synthetic { fill: #d9a441; }
+.cgraph-dot-public-reference { fill: #5fb7de; }

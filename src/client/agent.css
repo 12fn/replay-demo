@@ -1,0 +1,24 @@
+/* StaffPanel agent additions · imported only by src/client/components/StaffPanel.tsx */
+
+.tool-disclosure { margin: 0 0 8px; font-size: 12px; border: 1px solid var(--line-paper); border-radius: 6px; background: #fff; }
+.tool-disclosure > summary { cursor: pointer; padding: 5px 8px; list-style: none; display: flex; align-items: center; gap: 6px; }
+.tool-disclosure > summary::-webkit-details-marker { display: none; }
+.tool-disclosure[open] > summary { border-bottom: 1px solid var(--line-paper); }
+.tool-disclosure .tool-body { padding: 6px 8px 8px; display: flex; flex-direction: column; gap: 6px; }
+.tool-list { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 3px; }
+.tool-list li { display: flex; gap: 6px; align-items: baseline; }
+.tool-list code { font-family: var(--mono); font-size: 11px; color: var(--teal-strong); white-space: nowrap; }
+.tool-unavailable { color: var(--ink-muted); }
+
+.watch-kind { display: inline-flex; align-items: center; gap: 4px; font-size: 11px; padding: 1px 7px; border-radius: 4px; }
+.watch-kind-provenance { background: rgba(79, 168, 119, 0.14); color: #2c6f4a; }
+.watch-kind-model { background: rgba(217, 164, 65, 0.2); color: #8a6412; }
+.watch-facts { display: flex; flex-wrap: wrap; gap: 4px 10px; font-size: 11px; color: var(--ink-muted); }
+.watch-facts .mono { font-size: 11px; }
+.watch-actions { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; margin-top: 2px; }
+.watch-objective { font-size: 12px; color: var(--ink-muted); font-style: italic; }
+.task-result-method { display: block; font-size: 11px; color: var(--ink-muted); margin-top: 2px; }
+
+.retained-model-result { padding: 8px; border: 1px solid var(--line-paper); border-radius: 6px; margin-top: 6px; }
+.retained-model-result > summary { cursor: pointer; font-size: 12px; font-weight: 600; }
+.retained-model-result .task-result { margin: 8px 0; }

@@ -1,0 +1,113 @@
+{
+  "schema": "replay.ai-player-trial/1",
+  "trialId": "trial-e7f79ce1-d1ed-4711-b6b7-20d48978d9a6",
+  "createdAt": "2026-09-15T00:24:05.311Z",
+  "updatedAt": "2026-09-15T00:25:11.169Z",
+  "config": {
+    "scenarioId": "crosscurrent-objectives/1",
+    "seed": "PAIR0001",
+    "seat": "blue",
+    "opponent": "objectives/1",
+    "ticksPerDecision": 270,
+    "opponentTicksPerCheck": 270,
+    "maxDecisions": 6,
+    "capTicks": 1800
+  },
+  "status": "complete",
+  "cursor": null,
+  "history": [
+    {
+      "decision": 0,
+      "tick": 45,
+      "snapshotId": "snap-532c3901976097c9452a",
+      "choice": 0,
+      "meaning": "Expand into unclaimed adjoining territory (troops adjustable up to available forces)",
+      "intent": {
+        "type": "attack",
+        "targetID": null,
+        "troops": 8130
+      },
+      "key": "45:0:human001",
+      "responder": "claude-opus-5",
+      "outcome": "outcomes/00"
+    },
+    {
+      "decision": 1,
+      "tick": 315,
+      "snapshotId": "snap-00746d8ef5752cc79137",
+      "choice": 0,
+      "meaning": "Expand into unclaimed adjoining territory (troops adjustable up to available forces)",
+      "intent": {
+        "type": "attack",
+        "targetID": null,
+        "troops": 30046
+      },
+      "key": "315:0:human001",
+      "responder": "claude-opus-5",
+      "outcome": "outcomes/01"
+    },
+    {
+      "decision": 2,
+      "tick": 585,
+      "snapshotId": "snap-4834dc093f4fdd2acce4",
+      "choice": 0,
+      "meaning": "Expand into unclaimed adjoining territory (troops adjustable up to available forces)",
+      "intent": {
+        "type": "attack",
+        "targetID": null,
+        "troops": 52115
+      },
+      "key": "585:0:human001",
+      "responder": "claude-opus-5",
+      "outcome": "outcomes/02"
+    },
+    {
+      "decision": 3,
+      "tick": 855,
+      "snapshotId": "snap-909adaf474773c28e2e8",
+      "choice": 0,
+      "meaning": "Expand into unclaimed adjoining territory (troops adjustable up to available forces)",
+      "intent": {
+        "type": "attack",
+        "targetID": null,
+        "troops": 75483
+      },
+      "key": "855:0:human001",
+      "responder": "claude-opus-5",
+      "outcome": "outcomes/03"
+    },
+    {
+      "decision": 4,
+      "tick": 1125,
+      "snapshotId": "snap-2f6b1ec63d0c909a65c8",
+      "choice": 15,
+      "meaning": "Build Defense Post at {\"tile\":33595,\"x\":95,\"y\":67}",
+      "intent": {
+        "type": "build_unit",
+        "unit": "Defense Post",
+        "tile": 33595
+      },
+      "key": "1125:0:human001",
+      "responder": "claude-opus-5",
+      "outcome": "outcomes/04"
+    },
+    {
+      "decision": 5,
+      "tick": 1395,
+      "snapshotId": "snap-8f2a56dd02ebb2f615ba",
+      "choice": "hold",
+      "meaning": null,
+      "intent": null,
+      "key": null,
+      "responder": "claude-opus-5",
+      "outcome": "outcomes/05"
+    }
+  ],
+  "claims": {
+    "timing": "accelerated-pause: the engine waits while the responder deliberates, then advances the declared ticks with no further Blue orders. The native continuous clock (100 ms wall-clock per tick, never waits) is not exercised.",
+    "responder": "The responder label is supplied by the operator and is not proof of inference; provider receipts are attached separately by the main integrator.",
+    "harnessModelCalls": 0,
+    "humanPlaytest": false,
+    "claim": "Measured legal play by an external responder against the scripted objectives/1 opponent in a fictional abstract game. Not evidence of fun, engagement, learning, AI-player quality or realistic doctrine."
+  }
+}

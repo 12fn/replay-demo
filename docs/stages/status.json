@@ -1,0 +1,23 @@
+{
+  "product": "REPLAY",
+  "version": "0.29.3",
+  "source_commit": "f38861722590d561e51d7f239581e93327389fb2",
+  "current_stage": "instructor-pilot-candidate",
+  "publication": "clean public snapshot, private development history excluded",
+  "verified": [
+    "Private 0.29.0 full regression: 1954 tests in136 files after supplied private fixtures",
+    "0.29.3 focused client/native regression:272 tests in21 files",
+    "0.29.3 typecheck and production build passed",
+    "0.29.3 browser harness verifies protected content disappears on denial and only scoped panel selections recover after renewed native authorization",
+    "Public 0.29.3 checkout: 1950 tests in 137 files; zero failures/skips/todo; TypeScript passed"
+  ],
+  "pending": [
+    "Human instructor acceptance and measured learning outcomes",
+    "General game import and physical tabletop reconstruction"
+  ],
+  "paid_inference": {
+    "usd_cap": 5,
+    "request_cap": 100,
+    "note": "Per-installation persisted ledger. No credentials or existing deployment ledger included."
+  }
+}

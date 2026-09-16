@@ -1,0 +1,16 @@
+{
+  "url": "https://github.com/openfrontio/OpenFrontIO",
+  "commit": "0f2ef7c43511cfb413a95e07d364139249d6905d",
+  "copied": [
+    "src",
+    "tests/testdata/maps",
+    "tests/util",
+    "license files",
+    "zbin",
+    "resources/QuickChat.json",
+    "resources/tribeNameThemes.json",
+    "resources/lang/en.json",
+    "resources/lang/metadata.json"
+  ],
+  "purpose": "Pinned deterministic core and licensed fixture maps; custom learning UI and server are maintained separately."
+}

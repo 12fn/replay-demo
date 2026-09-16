@@ -1,0 +1,115 @@
+{
+  "evidence_kind": "source-derived synthetic fixture; independently constructed; NOT a real wire capture",
+  "scope": "Reduced illustrative catalog and history, not a complete live Tomo request. All prompts, descriptions, IDs and tool results are synthetic. Only each request object illustrates Chat fields; do not send this metadata envelope.",
+  "source_version": {
+    "tomo_image": "kaizen-pi-sidecar:release-1.2.0",
+    "pi_ai": "0.84.1",
+    "contract": "docs/process/tomo-pi-wire-contract.md"
+  },
+  "assumptions": [
+    "Unknown custom-model profile using an ordinary internal callback URL",
+    "Short cache retention, sufficient context for the source-default 32768 output-token request",
+    "Discovery enabled; synthetic reduced authorized catalog",
+    "No image, reasoning-signature or provider-specific fields"
+  ],
+  "cases": [
+    {
+      "name": "default-engine-string-input-reduced-catalog",
+      "request": {
+        "model": "synthetic-tomo-route",
+        "messages": [
+          { "role": "system", "content": "Synthetic contract example: use authorized tools to inspect a fictional exercise." },
+          { "role": "user", "content": "Find the state-reading capability for the fictional exercise." }
+        ],
+        "stream": true,
+        "stream_options": { "include_usage": true },
+        "store": false,
+        "max_completion_tokens": 32768,
+        "tools": [
+          {
+            "type": "function",
+            "function": {
+              "name": "tool_search",
+              "description": "Synthetic description: find authorized tools or parent surfaces.",
+              "parameters": {
+                "type": "object",
+                "properties": {
+                  "query": { "type": "string", "minLength": 1, "maxLength": 200, "description": "Synthetic capability query." },
+                  "limit": { "type": "integer", "minimum": 1, "maximum": 8, "default": 8, "description": "Synthetic result bound." },
+                  "view": { "type": "string", "enum": ["tools", "surfaces"], "default": "tools", "description": "Synthetic choice of result view." }
+                },
+                "required": ["query"],
+                "additionalProperties": false
+              },
+              "strict": false
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "text-array-history-with-discovery-and-function-continuation",
+      "request": {
+        "model": "synthetic-tomo-route",
+        "messages": [
+          { "role": "system", "content": "Synthetic contract example: preserve fictional exercise provenance." },
+          { "role": "user", "content": [{ "type": "text", "text": "Inspect the fictional exercise " }, { "type": "text", "text": "00000000-0000-4000-8000-000000000001 at tick 12." }] },
+          {
+            "role": "assistant",
+            "content": null,
+            "tool_calls": [{ "id": "call_synthetic_discovery_01", "type": "function", "function": { "name": "tool_search", "arguments": "{\"query\":\"kz_replay-tools_replay_get_exercise_state\",\"limit\":1,\"view\":\"tools\"}" } }]
+          },
+          { "role": "tool", "tool_call_id": "call_synthetic_discovery_01", "content": "Available on the next model step: kz_replay-tools_replay_get_exercise_state" },
+          {
+            "role": "assistant",
+            "content": "I will read the fictional state.",
+            "tool_calls": [{ "id": "call_synthetic_state_02", "type": "function", "function": { "name": "kz_replay-tools_replay_get_exercise_state", "arguments": "{\"exerciseId\":\"00000000-0000-4000-8000-000000000001\",\"tick\":12}" } }]
+          },
+          { "role": "tool", "tool_call_id": "call_synthetic_state_02", "content": "{\"synthetic\":true,\"tick\":12,\"note\":\"Invented result for wire-shape illustration only\"}" }
+        ],
+        "stream": true,
+        "stream_options": { "include_usage": true },
+        "store": false,
+        "max_completion_tokens": 32768,
+        "tools": [
+          {
+            "type": "function",
+            "function": {
+              "name": "kz_replay-tools_replay_get_exercise_state",
+              "description": "Synthetic description for a fictional state read; source-derived schema constraints, not a captured MCP descriptor.",
+              "parameters": {
+                "$schema": "https://json-schema.org/draft/2020-12/schema",
+                "type": "object",
+                "properties": {
+                  "exerciseId": { "type": "string", "pattern": "^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$", "description": "Synthetic exercise identifier." },
+                  "tick": { "type": ["integer", "null"], "minimum": 0, "maximum": 1000000, "description": "Synthetic optional cutoff; omission or null selects the current position." }
+                },
+                "required": ["exerciseId"],
+                "additionalProperties": false
+              },
+              "strict": false
+            }
+          },
+          {
+            "type": "function",
+            "function": {
+              "name": "tool_search",
+              "description": "Synthetic description: find authorized tools or parent surfaces.",
+              "parameters": {
+                "type": "object",
+                "properties": {
+                  "query": { "type": "string", "minLength": 1, "maxLength": 200, "description": "Synthetic capability query." },
+                  "limit": { "type": "integer", "minimum": 1, "maximum": 8, "default": 8, "description": "Synthetic result bound." },
+                  "view": { "type": "string", "enum": ["tools", "surfaces"], "default": "tools", "description": "Synthetic choice of result view." }
+                },
+                "required": ["query"],
+                "additionalProperties": false
+              },
+              "strict": false
+            }
+          }
+        ]
+      }
+    }
+  ]
+}

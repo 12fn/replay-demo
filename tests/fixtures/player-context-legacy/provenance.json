@@ -1,0 +1,53 @@
+{
+  "purpose": "Immutable fictional game checkpoint and actual prompt fixtures for standalone legacy compatibility tests; no provider credentials",
+  "files": [
+    {
+      "source": "evidence/ai-player-trial/equal-opus-20260915/manifest.json",
+      "fixture": "tests/fixtures/player-context-legacy/equal-opus-20260915/manifest.json",
+      "bytes": 3564,
+      "sha256": "ee4f0bd6cc46e1a7cb6e4e1ccfa03782263303ca7778a88324326d58ca25a7a2"
+    },
+    {
+      "source": "evidence/ai-player-trial/equal-opus-20260915/decisions/04/snapshot.json",
+      "fixture": "tests/fixtures/player-context-legacy/equal-opus-20260915/decisions/04/snapshot.json",
+      "bytes": 12708,
+      "sha256": "72899dce25b3e30cddd0e4c183ac47e3f72f71e3419f5175dd43cb38d0acb998"
+    },
+    {
+      "source": "evidence/ai-player-trial/equal-opus-20260915/decisions/04/prompt.md",
+      "fixture": "tests/fixtures/player-context-legacy/equal-opus-20260915/decisions/04/prompt.md",
+      "bytes": 13013,
+      "sha256": "1494a9da68beed3e696b9c3a66b8a97ae46e230f02f91fe41c5ce8eb608da3a7"
+    },
+    {
+      "source": "evidence/ai-player-trial/equal-opus-20260915/decisions/04/replay.json",
+      "fixture": "tests/fixtures/player-context-legacy/equal-opus-20260915/decisions/04/replay.json",
+      "bytes": 37962,
+      "sha256": "aa2655fefeb34b4128465d0530f6441f585088b9a3e818cc2f48eb7693dd1a4c"
+    },
+    {
+      "source": "evidence/ai-player-trial/equal-sol-20260915/manifest.json",
+      "fixture": "tests/fixtures/player-context-legacy/equal-sol-20260915/manifest.json",
+      "bytes": 3781,
+      "sha256": "b3195b90ab620359948fbf77b088a8789c2114dfaa1a4b8e55c3ff421aacfe73"
+    },
+    {
+      "source": "evidence/ai-player-trial/equal-sol-20260915/decisions/04/snapshot.json",
+      "fixture": "tests/fixtures/player-context-legacy/equal-sol-20260915/decisions/04/snapshot.json",
+      "bytes": 10516,
+      "sha256": "56a7e0d50df5af7359ce654b5a36ba330b5767c03d14c40c9ea8f26b279a0c77"
+    },
+    {
+      "source": "evidence/ai-player-trial/equal-sol-20260915/decisions/04/prompt.md",
+      "fixture": "tests/fixtures/player-context-legacy/equal-sol-20260915/decisions/04/prompt.md",
+      "bytes": 10815,
+      "sha256": "cde00665473f1d03daee77f41f1d7f2ac2cdfb746f8d4cfb9d94a26e6aa246fe"
+    },
+    {
+      "source": "evidence/ai-player-trial/equal-sol-20260915/decisions/04/replay.json",
+      "fixture": "tests/fixtures/player-context-legacy/equal-sol-20260915/decisions/04/replay.json",
+      "bytes": 37971,
+      "sha256": "aab9c6176afb5fdd75c13cc8ae9f0abfe3d4f0f43dc61c5b356aac3a73f343e5"
+    }
+  ]
+}

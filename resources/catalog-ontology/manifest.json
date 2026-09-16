@@ -1,0 +1,175 @@
+{
+  "projection": {
+    "id": "replay.catalog-ontology-projection",
+    "version": "1.0.0"
+  },
+  "graphSha256": "c3b935d9d7c87e77b67efb56d32dbd91ba1e0468635896ab45ade05828ae4baa",
+  "inputs": [
+    {
+      "kind": "preset-catalog",
+      "schema": "replay.preset-catalog/1",
+      "version": "preset-catalog/1",
+      "seed": "authored-deterministic/preset-catalog/1",
+      "sha256": "8d7992854eff4f3afd795aabf1f5c464dc14b77f6f00f85cd4727e4e68f4e485",
+      "records": 1752
+    },
+    {
+      "kind": "dual-model-trial",
+      "name": "feedback-20260915-held0001-v1-opus-blue-sol-red",
+      "gameId": "dual-a5aab898-4ed8-46c7-ac2d-ad214bf36262",
+      "files": 209,
+      "totalBytes": 2176711,
+      "manifestSha256": "4c3e10ce14f272bcc725a4ede8a1c1949aab2b8c192f302d1e4707df6ca1d6b9",
+      "summarySha256": "a18227e5e46ca4eca90d718c460aaca1d82cdc11270c4e5ec5592dd7a8823871",
+      "engineReceipt": {
+        "path": "evidence/platform/feedback-20260915-held0001-v1-opus-blue-sol-red-main-review.json",
+        "sha256": "8271bd8e7a65ce3b8dc3314b4cc828fd20c2f1b57a66f93c15be21d27b7e3710"
+      }
+    },
+    {
+      "kind": "dual-model-trial",
+      "name": "feedback-20260915-held0001-v1-sol-blue-opus-red",
+      "gameId": "dual-b6149a10-8f71-48a6-954b-0e74c4c17670",
+      "files": 141,
+      "totalBytes": 1227213,
+      "manifestSha256": "43f777e2a23de7783746f951078d2dc23ab850580d128e51fcaebeae39f95b75",
+      "summarySha256": "07d1a97c69b7c6af6263bcb94c31d12a2192ae9e16dbef29eddb0ea11df73b74",
+      "engineReceipt": {
+        "path": "evidence/platform/feedback-20260915-held0001-v1-sol-blue-opus-red-main-review.json",
+        "sha256": "95a7f5ceb0825b1f17577a4c4d8c9fe6147f295de0ce36074d314c16f0bf4822"
+      }
+    },
+    {
+      "kind": "dual-model-trial",
+      "name": "feedback-20260915-held0001-v2-opus-blue-sol-red",
+      "gameId": "dual-c69e90d6-f288-4f5a-b026-a4322a86facc",
+      "files": 209,
+      "totalBytes": 2533446,
+      "manifestSha256": "6a1383a9ede1c0b0c4cd656ce4985e32ba76092bb7820fddc8d241df508e92aa",
+      "summarySha256": "80672e296134a078a7703182bcaf8ce94ab85d91b7edf108188d408340865d87",
+      "engineReceipt": {
+        "path": "evidence/platform/feedback-20260915-held0001-v2-opus-blue-sol-red-main-review.json",
+        "sha256": "98f062efa217e2215fbad7853956ce2a6c4cd555584361fd602915a9a631cd18"
+      }
+    },
+    {
+      "kind": "dual-model-trial",
+      "name": "feedback-20260915-held0001-v2-sol-blue-opus-red",
+      "gameId": "dual-48319e41-e1e8-4850-845f-7ac0ba7107c8",
+      "files": 209,
+      "totalBytes": 2489880,
+      "manifestSha256": "2feb61ab60ae1ddc4fc0f5832519805ad69b613358f961343322f0ef5b6a306b",
+      "summarySha256": "83336f427873488f85c3d309cf32d7c4013fe3e787a54d355132e6787526bcb9",
+      "engineReceipt": {
+        "path": "evidence/platform/feedback-20260915-held0001-v2-sol-blue-opus-red-main-review.json",
+        "sha256": "9feb1650a17b1592e170a203fc1bc709fc90cec2142fe31ed7c92484734bc1a4"
+      }
+    },
+    {
+      "kind": "dual-model-trial",
+      "name": "taiwan-paired-20260915-pair0001-opus-blue-sol-red",
+      "gameId": "dual-f469e4a5-4250-4b5c-b4f2-2e3697873832",
+      "files": 158,
+      "totalBytes": 1465431,
+      "manifestSha256": "37f37a647c9a049e33f7c68a3ea183e726559b715f644e91037748b120880595",
+      "summarySha256": "c6b81b041b12d5145c2c10e6ccde5025639510dc4503183b7c4f9d47d592f60a",
+      "engineReceipt": {
+        "path": "evidence/platform/taiwan-paired-20260915-pair0001-opus-blue-sol-red-main-review.json",
+        "sha256": "6ef30671eb538e76ff3d5712ce2423654831bb37955a3d67355f10db3efce81c"
+      }
+    },
+    {
+      "kind": "dual-model-trial",
+      "name": "taiwan-paired-20260915-pair0001-sol-blue-opus-red",
+      "gameId": "dual-df6b2b4e-0a9c-4b51-9b47-e4d14cb4da0d",
+      "files": 260,
+      "totalBytes": 2937353,
+      "manifestSha256": "746146008eebeb86154cc5d3d36bb1333774874a050a7858f910d9da69c85c23",
+      "summarySha256": "e19aa997594a48274dbbe80ec9c449c46105cfe1847d7e84388954037fa772f8",
+      "engineReceipt": {
+        "path": "evidence/platform/taiwan-paired-20260915-pair0001-sol-blue-opus-red-main-review.json",
+        "sha256": "1222d4c86f6ec17395512edf4153ada488bb8e9761479baef3ef762bb4bfd832"
+      }
+    },
+    {
+      "kind": "dual-model-trial",
+      "name": "taiwan-paired-20260915-pair0002-opus-blue-sol-red",
+      "gameId": "dual-f9814f41-0f6a-49ae-8736-a1fe878f5a16",
+      "files": 260,
+      "totalBytes": 2965132,
+      "manifestSha256": "00b7420d65460278f632245994f0f1263fec406dfc2bce3a5ea0cd5b2216550d",
+      "summarySha256": "68bc1f8fd17ca643f3b90c5a06a18badb3b9c52c84f582557bc08899ce1e0a99",
+      "engineReceipt": {
+        "path": "evidence/platform/taiwan-paired-20260915-pair0002-opus-blue-sol-red-main-review.json",
+        "sha256": "7bc38f772f5310f150a8496a3e18d22a9c132b796258b12fe083130b6ed5701f"
+      }
+    },
+    {
+      "kind": "dual-model-trial",
+      "name": "taiwan-paired-20260915-pair0002-sol-blue-opus-red",
+      "gameId": "dual-e7025e34-3d70-4535-ad68-7df7a4e1895f",
+      "files": 158,
+      "totalBytes": 1489052,
+      "manifestSha256": "d06ffd3627d297976b4ba7602ff354ce67675bff0b41b104526d9e51beebab22",
+      "summarySha256": "d61f8f17604d1b9725c4ede70da78a3ab20fefaa813e8908ac33943bd02e238d",
+      "engineReceipt": {
+        "path": "evidence/platform/taiwan-paired-20260915-pair0002-sol-blue-opus-red-main-review.json",
+        "sha256": "ca7bf6eee4fab991a8b4a10df0baaf6683d7846ed2301e3298094a27c467314a"
+      }
+    },
+    {
+      "kind": "dual-model-trial",
+      "name": "taiwan-sol-blue-opus-red-full-20260915",
+      "gameId": "dual-ae785c60-ba1c-4e7d-9eb5-09c8487a3564",
+      "files": 294,
+      "totalBytes": 3559230,
+      "manifestSha256": "898569a0b248b40307fe583a0f838598af06e3acc42c2113df15ba6a738ddd94",
+      "summarySha256": "c14c869fcb91130e4fc206b63c597613040b59228b03a9111d63da1a004a810b",
+      "engineReceipt": {
+        "path": "evidence/platform/taiwan-sol-blue-opus-red-full-20260915-main-review.json",
+        "sha256": "874f43b1237478118649583de8e4ce1653ad0d6e05fdcc597ea3030040d7b3d8"
+      }
+    }
+  ],
+  "nodes": 4530,
+  "edges": 15469,
+  "observations": 392,
+  "nativeIngestion": false,
+  "files": [
+    {
+      "name": "graph.json",
+      "bytes": 18463335,
+      "sha256": "719181b9c1cd60b5e58276591b676efe86935b5c8e693c5092f4b07a979dd8be"
+    },
+    {
+      "name": "nodes.jsonl",
+      "bytes": 7628701,
+      "sha256": "e2e8af44db001430a740147467ebab284fd6e6b5c3f33e4f053f3cb530c03d2d"
+    },
+    {
+      "name": "edges.jsonl",
+      "bytes": 6842264,
+      "sha256": "a9c3d257cddffbbb0a8754ae858093bcb17e0c46fb0787602d4df9e134c17226"
+    },
+    {
+      "name": "observations.json",
+      "bytes": 730423,
+      "sha256": "7c9f2fa1fdf2a475b0665d1cdfa303883017a60487dc192ddba13cce826fdfd0"
+    },
+    {
+      "name": "graphiti-curated-messages.json",
+      "bytes": 358345,
+      "sha256": "41c3663adf6f7d62fd62fcba01f9d3304a1959f678442c1b9973afde9dcb12cb"
+    },
+    {
+      "name": "README.md",
+      "bytes": 4065,
+      "sha256": "280dcbaac6e50de233ca03f6d98491b161bfbcf3fd996d100e622f7d4032490b"
+    },
+    {
+      "name": "trial-records.tar.gz",
+      "bytes": 2882424,
+      "sha256": "c5befa2186e5fedb658e93cfac5251059bf21c66580a61dd42ec82237cd672c3"
+    }
+  ]
+}

@@ -1,0 +1,153 @@
+{
+  "$schema_note": "REPLAY exercise curriculum. Machine-readable companion to docs/pilot/*.md. All content is original, provisional, and unreviewed by a subject-matter expert. No source is cited as authority. The `version` field is a code contract: src/server/service.ts stamps it onto attributed exercises and src/learning/eligibility.ts compares its major number; src/server/native-http.ts pins the same string as CURRICULUM_VERSION. Content revisions that keep the criteria IDs and semantics stable are tracked in `content_revision` and `changelog` without bumping `version`.",
+  "curriculum_id": "replay-crosscurrent-decision-reasoning",
+  "version": "0.1.0",
+  "content_revision": 2,
+  "authored": "2026-09-13",
+  "refreshed": "2026-09-13",
+  "status": "provisional-unreviewed",
+  "review": {
+    "sme_review_required_before_operational_use": true,
+    "assessment_sme": {"status": "pending", "reviewed_version": null},
+    "domain_sme": {"status": "pending", "reviewed_version": null},
+    "privacy_review": {"status": "pending", "reviewed_version": null},
+    "human_playtest": {"status": "pending", "note": "No human learner has played a session. Accelerated 72,000-tick simulation replay is qualified (evidence/soak/long-replay.json); that is not a playtest."},
+    "research_question": "Is there observable pre/post change in decision-reasoning probe scores after one REPLAY session with after-action review? Learning is not assumed."
+  },
+  "exercise": {
+    "name": "Exercise Crosscurrent",
+    "fiction": "Abstract Blue-versus-Red territory and resource game on an open game map. Fictional side names. No real force, place, adversary, doctrine, tactics, or targeting is modeled. Territory outcome is recorded as fact and is never treated as evidence of reasoning quality.",
+    "engine": {"name": "OpenFront (pinned)", "upstream_commit": "0f2ef7c43511cfb413a95e07d364139249d6905d", "ticks_per_second": 10, "visibility": "shared map; side-scoped reports and staff records", "end_conditions": ["Finish action by commander or instructor (event exercise_ended)", "engine elimination of a side after tick 50 (event exercise_completed; victory pacing untuned)"]},
+    "identity_modes": [
+      {"id": "local-demo", "description": "Persona selector (Commander, Intelligence, Instructor). Not authenticated. Exercises are attributed to the persona subject string."},
+      {"id": "kamiwaza", "description": "Native workroom sign-in. Seat mapped from workroom role (owner→instructor, editor/operator→commander, viewer→intelligence, otherwise intelligence); an operator profile in workroom attribute replay_profiles may change only the presented seat, name and organization. Writes require fresh can_edit; agent control requires can_run_agents. Persona selector is rejected."}
+    ],
+    "roles": [
+      {"id": "commander", "side": "blue", "may_order": true, "product": "orders with optional contemporaneous decision note and report citations; post-hoc statements after play"},
+      {"id": "intelligence", "side": "blue", "may_order": false, "product": "in-app assessment log with report citations; watches; staff questions"},
+      {"id": "instructor", "side": "both", "may_order": "avoid during play", "product": "session log; report releases; rubric sheet; may generate debriefs during play"}
+    ],
+    "opponent_modes": [
+      {"id": "deterministic-baseline", "default": true, "paid": false, "description": "Every 45 ticks (4.5 s) with at least 100 forces: commits 18 percent of uncommitted forces against the opposing player when a border is shared and the attack is legal, otherwise expands into unclaimed land."},
+      {"id": "model-driven", "default": false, "paid": true, "description": "Bounded tool loop: at most one pulse per 15 s wall clock; a pulse is at most 2 paid completions and 4 tool executions from the catalog (observe, list_legal_actions, list_owned_units, list_resources, list_border_tiles, inspect_tile, search_reports, recent_orders, resource_delta, submit_order, delegate_watch). Output stored as model_decision (external action summary, tool calls, receipt) plus tool_result events. Never chain of thought. Disabled automatically on server restart and on budget or credential errors. Playstyle label (reserve-aware, expansion-focused, opportunistic) is seeded from the simulation ID and only biases reserve and tempo."}
+    ],
+    "report_schedule": {"automatic_ticks": [1, 300, 600], "after_that": "instructor release only (POST /api/reports/inject; Staff panel 'Release report')", "content": "engine observation of the opposing player's tiles and uncommitted forces at the release tick, one report per side, marked as superseding that side's prior report", "synthetic": true},
+    "staff": {
+      "watch": "durable, side-scoped, objective-declared; deterministic provenance watch evaluated every 100 ticks and at each release; emits staff_update only on a material event (new report, supersession, or opposing public totals moved ≥10% tiles or ≥25% forces since baseline); survives restart",
+      "paid_watch_analysis": "opt-in per watch; bounded pulse; citations validated against side reports and tool outputs; paused on restart; marks the attempt staff-assisted",
+      "question": "one paid request; answer may cite only the last four side reports it was shown; invalid citation discards the answer; marks the attempt staff-assisted"
+    },
+    "session_plans": {"60": "docs/pilot/instructor-guide.md#31-60-minute-plan", "90": "docs/pilot/instructor-guide.md#32-90-minute-plan", "120": "docs/pilot/instructor-guide.md#33-120-minute-plan"}
+  },
+  "capture": {
+    "contemporaneous_rationale": {"implemented": true, "mandatory": false, "pauses_clock": false, "api": "POST /api/commands {rationale?, sourceIds?}", "storage": "command event details.rationale, details.rationaleTiming='contemporaneous', details.sourceIds, details.observedTick, details.before, details.after", "validation": "sourceIds must be reports released to the ordering side at or before the observed tick; otherwise 422 and the order is not queued"},
+    "post_hoc_statement": {"implemented": true, "api": "POST /api/learning/decision-log {eventId, text, sourceIds?}", "storage": "decision_log event with details.timing='post-hoc', details.commandEventId, details.orderTick, details.orderObservedTick", "rule": "own human orders only; never merged with contemporaneous evidence"},
+    "assessment_log": {"implemented": true, "api": "POST /api/learning/assessment {text, sourceIds?}", "storage": "assessment_log event with details.timing ('contemporaneous' only while the exercise runs and the live tick is displayed, else 'post-hoc'), details.observedTick", "rule": "intelligence or instructor seat; citations must be human-side reports available at the displayed tick"},
+    "probes": {"implemented": false, "note": "Pre/post probes are paper or plain text (docs/pilot/pre-post-probes.md). The dossier's 'probes' array is a list of questions for orders without a recorded reason, not a pre/post instrument."}
+  },
+  "sources": [
+    {
+      "id": "SRC-000",
+      "title": "No reviewed sources",
+      "status": "none",
+      "note": "No dataset or document has been reviewed or ingested. Event-catalog resources (competency frameworks, planning-doctrine extractions, wargaming review, synthetic discussion assignment) are metadata entries only; their contents remain deferred and are not cited here. Each must pass docs/pilot/dataset-source-review-template.md before appearing in this array with status approved or restricted. The curated domain ontology in src/ontology/domain.ts describes the game's own rules and is not a learning source."
+    }
+  ],
+  "objectives": [
+    {"id": "OBJ-1", "name": "Evidence currency", "statement": "Use the report current at the order tick; treat superseded reports as history.", "rubric_criterion": "C1", "probe_items": ["A1", "B1"], "evidence_kinds": ["command", "report", "decision_log"]},
+    {"id": "OBJ-2", "name": "Provenance", "statement": "Trace statements about the opponent to a specific report, tick, or map observation; separate observation from inference.", "rubric_criterion": "C2", "probe_items": ["A2", "B2"], "evidence_kinds": ["assessment_log", "staff_answer"]},
+    {"id": "OBJ-3", "name": "Uncertainty handling", "statement": "State what is unknown and take a recorded action about it.", "rubric_criterion": "C3", "probe_items": ["A3", "B3"], "evidence_kinds": ["decision_log", "task_created", "staff_answer"]},
+    {"id": "OBJ-4", "name": "Resource commitment reasoning", "statement": "Choose a commitment level and explain what is retained and why.", "rubric_criterion": "C4", "probe_items": ["A4", "B4"], "evidence_kinds": ["command", "decision_log"]},
+    {"id": "OBJ-5", "name": "Contemporaneous explanation", "statement": "Write a decision statement at the time of the order.", "rubric_criterion": "C5", "probe_items": ["A6", "B6"], "evidence_kinds": ["decision_log", "command"]},
+    {"id": "OBJ-6", "name": "Revision on material change", "statement": "At a report release or watch result, change the plan or explicitly keep it with a reason.", "rubric_criterion": "C6", "probe_items": ["A5", "B5"], "evidence_kinds": ["report", "staff_update", "command", "decision_log", "assessment_log"]},
+    {"id": "OBJ-7", "name": "Counterfactual practice", "statement": "State an assumption, branch from a recorded tick, play a different legal order, compare honestly.", "rubric_criterion": "C7", "probe_items": [], "evidence_kinds": ["branch_created", "command", "written_assumption", "written_comparison"], "note": "Informed practice only. Never a post measure. The dossier labels branches informed-practice and excludes them from independent comparison."},
+    {"id": "OBJ-8", "name": "AI output literacy", "statement": "Recognize a model action summary as a report of selected actions, not reasoning; recognize that unrecorded reasons cannot be inferred.", "rubric_criterion": null, "probe_items": ["A6", "A7", "B6", "B7"], "evidence_kinds": ["probe"]}
+  ],
+  "rubric": {
+    "file": "docs/pilot/rubric-provisional.md",
+    "version": "0.1.0",
+    "content_revision": 2,
+    "scale": {"0": "not observed at this moment (missing, not failure)", "1": "partial", "2": "present", "3": "present and explicitly sourced"},
+    "separate_results": {
+      "game_outcome": {"scored": false, "source": "engine state at the finish tick or exercise_completed event; recorded as fact only"},
+      "estimated_decision_value": {"scored": false, "source": "no evaluator exists; the Review 'Decisions' panel flags commitments above 65 percent of available forces as 'Review tradeoff', which is a threshold, not a judgment"},
+      "learning_evidence": {"scored": true, "source": "events, reports, tasks, in-app statements, paper logs, probes"}
+    },
+    "rules": ["no citation, no score", "reasons only from learner writing or review statements", "post hoc statements scored on a separate line", "assistance noted, not deducted", "branch play scored only on C7", "territory outcome never scores any criterion"],
+    "criteria": [
+      {"id": "C1", "name": "Evidence currency", "objective": "OBJ-1"},
+      {"id": "C2", "name": "Provenance", "objective": "OBJ-2"},
+      {"id": "C3", "name": "Uncertainty handling", "objective": "OBJ-3"},
+      {"id": "C4", "name": "Resource commitment reasoning", "objective": "OBJ-4"},
+      {"id": "C5", "name": "Decision explanation (contemporaneous)", "objective": "OBJ-5"},
+      {"id": "C6", "name": "Revision on material change", "objective": "OBJ-6"},
+      {"id": "C7", "name": "Counterfactual practice (branch only)", "objective": "OBJ-7"}
+    ],
+    "app_signals": {
+      "note": "Descriptive counts computed by src/learning/dossier.ts. They inform the rater; they are not scores.",
+      "gap_kinds": ["rationale-unobserved (C5)", "rationale-post-hoc-only (C5)", "rationale-uncited (C2)", "superseded-source-cited (C1)", "release-without-recorded-response (C6)", "assessment-uncited (C2)", "no-recorded-uncertainty-action (C3)"],
+      "counts": ["humanCommands", "commandsWithRationale", "contemporaneousRationale", "commandsCitingSources", "commandsCitingSupersededSource", "reportsReleased", "releasesFollowedByRecordedAction", "watchesCreated", "assessmentsLogged", "assessmentsCitingSources", "staffQuestions"]
+    },
+    "validation": {"inter_rater_reliability": "unknown", "sme_review": "pending", "framework_alignment": "none loaded"}
+  },
+  "misconceptions": [
+    {"id": "M1", "statement": "The newest report on screen is the whole truth now.", "correction": "A report is an observation at its release tick. It ages immediately. Currency is relative to the order tick.", "objective": "OBJ-1", "observable_signal": "decision note cites a report without acknowledging its tick, or acts on a report released long before the order with no acknowledgement"},
+    {"id": "M2", "statement": "An older report is wrong once a new one arrives.", "correction": "The older report was true at its tick and remains history. Supersession changes what is current, not what was observed.", "objective": "OBJ-1", "observable_signal": "learner discards or disputes the earlier report rather than dating it"},
+    {"id": "M3", "statement": "A staff answer is a source.", "correction": "A staff answer is generated from state and reports; it is assistance. The reports it cites are the sources.", "objective": "OBJ-2", "observable_signal": "assessment entry says 'staff said' with no report cited (dossier gap assessment-uncited)"},
+    {"id": "M4", "statement": "The model's summary tells us why it acted.", "correction": "The summary is an external description returned alongside tool calls. It is not chain of thought and cannot be graded as reasoning. The debrief validator rejects opponent claims that attribute motives.", "objective": "OBJ-8", "observable_signal": "probe item 7 answered (a)"},
+    {"id": "M5", "statement": "If I did not write a reason, the instructor can work it out from my orders.", "correction": "Nobody infers reasons from clicks. Unrecorded rationale is 'not observed' (dossier gap rationale-unobserved).", "objective": "OBJ-5", "observable_signal": "probe item 6 answered yes; orders without a decision note or post-hoc statement"},
+    {"id": "M6", "statement": "Committing everything is bad; holding everything is safe.", "correction": "The rubric scores whether the level was chosen with a stated reason referencing the estimate or a risk, not the level itself.", "objective": "OBJ-4", "observable_signal": "learner explains commitment only as a rule of thumb"},
+    {"id": "M7", "statement": "Keeping the plan after a new report means I ignored it.", "correction": "An explicit 'keep, because' is revision behavior. Silence is not.", "objective": "OBJ-6", "observable_signal": "release with no later order, statement, assessment or watch (dossier gap release-without-recorded-response)"},
+    {"id": "M8", "statement": "Doing better in the branch shows I learned.", "correction": "Branch play is informed by the original future. It is practice, not a measure of improvement.", "objective": "OBJ-7", "observable_signal": "comparison sentence claims improvement without acknowledging hindsight"},
+    {"id": "M9", "statement": "Losing the game means the decisions were bad; winning means they were good.", "correction": "Outcome, estimated decision value, and learning evidence are kept separate. The build has no decision-value evaluator and the elimination event itself says outcome is separate from reasoning quality.", "objective": null, "observable_signal": "learner or instructor uses end state or tile count to score a criterion"},
+    {"id": "M10", "statement": "This game teaches real tactics.", "correction": "It is an abstract game. Nothing transfers to real-world tactics or targeting, and no doctrine is loaded.", "objective": null, "observable_signal": "learner or presenter draws a real-world tactical analogy"}
+  ],
+  "practice_variants": [
+    {"id": "PV-1", "name": "Baseline, instructor releases", "opponent_mode": "deterministic-baseline", "report_release": "instructor at plan times", "duration_min": [60, 90, 120], "purpose": "default pilot condition", "implemented": true, "human_tested": false},
+    {"id": "PV-2", "name": "Late-conflicting release", "opponent_mode": "deterministic-baseline", "report_release": "instructor releases while a large Blue commitment is in progress", "duration_min": [90, 120], "purpose": "make OBJ-6 observable under pressure", "implemented": true, "human_tested": false},
+    {"id": "PV-3", "name": "Model-driven opponent from mid-session", "opponent_mode": "model-driven from a recorded tick", "report_release": "instructor", "duration_min": [120], "purpose": "observe response to a less predictable opponent; learners told only after", "implemented": true, "paid": true, "human_tested": false, "note": "Record the controller_changed tick. Do not claim opponent strength. In the one recorded automated run (evidence/poc/live-inference-and-browser.json) the model opponent eliminated an unattended Blue within about five minutes; elimination ends the exercise."},
+    {"id": "PV-4", "name": "Watch-only staff", "opponent_mode": "deterministic-baseline", "report_release": "instructor", "duration_min": [60, 90], "purpose": "run with paid staff answers and paid watch analysis disabled; isolates the deterministic watch", "implemented": true, "human_tested": false},
+    {"id": "PV-5", "name": "Red seat branch", "opponent_mode": "n/a (branch)", "report_release": "reports at fork only", "duration_min": [10], "purpose": "OBJ-7 from the opponent's information state; opposing-side branches open after the exercise ends or for the instructor", "implemented": true, "human_tested": false},
+    {"id": "PV-6", "name": "Fresh scenario as post measure", "opponent_mode": "deterministic-baseline", "report_release": "instructor", "duration_min": [30], "purpose": "replace written post-probe with a new short exercise; requires a second map configuration and matched report schedule", "implemented": false, "blocked_on": "second scenario configuration and playtest (the 'plains' map exists as scenario crosscurrent-plains but has no matched plan)"},
+    {"id": "PV-7", "name": "Assisted versus unassisted", "opponent_mode": "deterministic-baseline", "report_release": "instructor", "duration_min": [90], "purpose": "comparative study; not a pilot activity. The app records assistance per attempt (unassisted, staff-assisted, unknown).", "implemented": false, "blocked_on": "SME review, research protocol"}
+  ],
+  "probes": {
+    "file": "docs/pilot/pre-post-probes.md",
+    "forms": ["A", "B"],
+    "equivalence": "assumed, not established; counterbalance form order",
+    "distinct_from_branch_practice": true,
+    "items_per_form": 7,
+    "in_app": false
+  },
+  "records": {
+    "consent_file": "docs/pilot/consent-and-learning-records.md",
+    "export_file": "docs/pilot/assessment-data-export.md",
+    "minimal_record_set": ["session_log", "engine_record", "event_log", "decision_notes_and_statements", "assessment_log", "probe_forms", "rubric_sheet", "inference_ledger", "dossier_markdown", "debrief_records"],
+    "not_recorded": ["audio_video_unless_separately_consented", "keystrokes_or_biometrics", "inferred_reasons", "model_chain_of_thought", "platform_tokens_in_browser"],
+    "external_model_data_flow": "staff question with game state and last four side reports; model opponent observation; per-watch staff analysis observation; debrief reference catalogue including the learner's own recorded statements and side reports. Each is a metered request under the project cap."
+  },
+  "implementation_status": {
+    "file": "docs/pilot/README.md#implemented-versus-pending",
+    "checklist": "docs/pilot/handoff-acceptance-checklist.md",
+    "in_app_rationale_capture": true,
+    "in_app_rationale_mandatory": false,
+    "in_app_post_hoc_statements": true,
+    "in_app_assessment_log": true,
+    "in_app_probes": false,
+    "instructor_corrections": false,
+    "personal_dossier": true,
+    "generated_debrief_validated": true,
+    "branch_attribution": true,
+    "learning_record_export": "partial: dossier Markdown, debrief Markdown, engine record JSON, task trace JSON; full event log via SQLite only",
+    "platform_identity": "implemented (kamiwaza mode); live sign-in qualified once (evidence/platform/native-session-qualification.json)",
+    "ontology": "workroom Graphiti instance created and CPU embedding service qualified; ingestion and search unknown until evidence appears",
+    "accelerated_replay_qualified_ticks": 72000,
+    "full_length_human_playtest": false,
+    "wall_clock_two_hour_run": false,
+    "sme_endorsement": false
+  },
+  "changelog": [
+    {"version": "0.1.0", "content_revision": 1, "date": "2026-09-13", "change": "Initial provisional curriculum authored from the local build and controlling specification. No sources reviewed. No SME review."},
+    {"version": "0.1.0", "content_revision": 2, "date": "2026-09-13", "change": "Refreshed against the implemented build: in-app optional rationale, post-hoc statements, assessment log, dossier, validated debrief, branch attribution, native identity modes, bounded tool-loop opponent and durable watches. Criteria IDs, objective statements and source list unchanged so attributed exercises remain comparable; `version` deliberately not bumped (see $schema_note)."}
+  ]
+}

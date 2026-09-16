@@ -1,0 +1,14 @@
+/** At most one native opponent pulse (<=2 paid requests), with actual shape diagnostics. */
+import fs from 'node:fs';import assert from 'node:assert/strict';import {nativeAppClient} from './native-app-client';
+const c=await nativeAppClient(),j=async(p:string,b?:unknown)=>(await c.request(p,b)).json() as Promise<any>;let id='';
+try{
+ const build=await j('/replay-build.json');assert.equal(build.version,'0.5.0');const row=await j('/api/exercises',{name:'Synthetic qualification · native response-shape diagnosis'});id=row.id;const before=(await j('/api/agents/tools')).budget;assert(before.requestsUsed<=98);let o=await j('/api/overview');
+ const ready=Date.now()+10000;while((o.state.spawning||o.state.tick<25)&&Date.now()<ready){await new Promise(r=>setTimeout(r,200));o=await j('/api/overview');}assert(!o.state.spawning);
+ await j('/api/agent',{enabled:true});const deadline=Date.now()+55000;let seen=false;
+ while(Date.now()<deadline){o=await j('/api/overview');if(o.timeline.some((e:any)=>['model_decision','model_error'].includes(e.kind))){seen=true;break;}await new Promise(r=>setTimeout(r,200));}
+ await j('/api/agent',{enabled:false});assert(seen,'No completed diagnostic event before timeout');
+ let bundle=await j('/api/review/export.json');const settleDeadline=Date.now()+30000;while(bundle.payload.receipts.some((r:any)=>r.status==='reserved')&&Date.now()<settleDeadline){await new Promise(r=>setTimeout(r,250));bundle=await j('/api/review/export.json');}
+ await j(`/api/exercises/${id}/finish`,{});bundle=await j('/api/review/export.json');const after=(await j('/api/agents/tools')).budget;
+ const diagnosticEvents=bundle.payload.events.filter((e:any)=>['model_decision','model_error'].includes(e.kind)).map((e:any)=>({id:e.id,tick:e.tick,kind:e.kind,receiptId:e.details.receipt?.id??e.details.receiptId,code:e.details.code,diagnostics:e.details.diagnostics,providerDiagnostics:e.details.providerDiagnostics}));
+ const proof={at:new Date().toISOString(),build,exerciseId:id,automated:true,humanPlaytest:false,firstNativeOpponentPulseOnly:true,diagnosticEvents,receipts:bundle.payload.receipts,newPaidRequests:after.requestsUsed-before.requestsUsed,budget:after,bundleSha256:bundle.sha256,fingerprint:bundle.payload.engine.fingerprint};fs.writeFileSync('evidence/poc/native-response-shapes.json',JSON.stringify(proof,null,2));console.log(JSON.stringify(proof));assert(proof.newPaidRequests>=1&&proof.newPaidRequests<=2);assert(diagnosticEvents.some((e:any)=>e.providerDiagnostics||e.diagnostics?.messageShapes));
+}finally{if(id){await j('/api/select',{exerciseId:id}).catch(()=>{});await j('/api/agent',{enabled:false}).catch(()=>{});const o=await j('/api/overview').catch(()=>null);if(o?.exercises.find((e:any)=>e.id===id)?.status==='running')await j(`/api/exercises/${id}/finish`,{}).catch(()=>{});}await c.close();}

@@ -1,0 +1,78 @@
+/* OntologyPanel · imported only by src/client/components/OntologyPanel.tsx. All classes are onto-* scoped. */
+
+.onto { display: grid; gap: 12px; grid-template-columns: minmax(0, 1fr); align-content: start; }
+.onto .panel { max-height: none; }
+.onto .panel-body { overflow: visible; }
+.onto-head-aside { display: inline-flex; align-items: center; gap: 6px; flex-wrap: wrap; justify-content: flex-end; }
+.onto-lead { display: flex; flex-direction: column; gap: 4px; }
+.onto-scope { padding: 8px 10px; border-left: 3px solid var(--teal); background: var(--paper-2, rgba(0, 0, 0, 0.04)); font-size: 12.5px; line-height: 1.45; }
+
+/* Status tags: green only when the platform itself said "ready". */
+.onto-state { display: inline-flex; align-items: center; gap: 5px; padding: 1px 8px; border-radius: 999px; font-size: 11px; font-weight: 600; letter-spacing: 0.03em; text-transform: uppercase; }
+.onto-state-ready { background: rgba(79, 168, 119, 0.18); color: #2c6f4a; }
+.onto-state-degraded { background: rgba(217, 164, 65, 0.2); color: #8a6412; }
+.onto-state-unavailable, .onto-state-error { background: rgba(214, 96, 84, 0.18); color: #b0382c; }
+.onto-state-unknown, .onto-state-local { background: rgba(120, 120, 120, 0.14); color: var(--ink-muted); }
+.onto-state-pending { background: rgba(47, 163, 182, 0.16); color: var(--teal-strong); }
+.onto-state-accepted { background: rgba(79, 168, 119, 0.18); color: #2c6f4a; }
+.onto-state-uncertain { background: rgba(217, 164, 65, 0.2); color: #8a6412; }
+.onto-state-failed { background: rgba(214, 96, 84, 0.18); color: #b0382c; }
+.onto-state-unpublished { background: rgba(120, 120, 120, 0.14); color: var(--ink-muted); }
+
+/* Graph + details layout */
+.onto-graph-wrap { display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 12px; align-items: start; }
+.onto-graph-title { display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; margin-bottom: 6px; }
+.onto-graph-title h3 { margin: 0; }
+.onto-canvas { width: 100%; aspect-ratio: 16 / 10; background: #fff; border: 1px solid var(--line-paper); border-radius: var(--radius); display: block; }
+.onto-canvas.is-local { background: repeating-linear-gradient(135deg, #fff 0 10px, #faf7f1 10px 20px); border-style: dashed; }
+.onto-canvas text { font-family: var(--font); pointer-events: none; }
+.onto-node { cursor: pointer; }
+.onto-node circle { stroke: #fff; stroke-width: 1.5; transition: opacity 120ms; }
+.onto-node text { font-size: 10.5px; fill: var(--ink); paint-order: stroke; stroke: #fff; stroke-width: 3px; stroke-linejoin: round; }
+.onto-node.is-dim { opacity: 0.22; }
+.onto-node.is-selected circle { stroke: var(--ink); stroke-width: 2.5; }
+.onto-node:focus-visible { outline: none; }
+.onto-node:focus-visible circle { stroke: var(--teal-strong); stroke-width: 3; }
+.onto-edge { stroke: #9a927f; stroke-width: 1.1; fill: none; opacity: 0.75; }
+.onto-edge.is-dim { opacity: 0.08; }
+.onto-edge.is-hot { stroke: var(--teal-strong); stroke-width: 2; opacity: 1; }
+.onto-edge-label { font-size: 8.5px; fill: var(--teal-strong); paint-order: stroke; stroke: #fff; stroke-width: 3px; }
+.onto-empty-canvas { width: 100%; aspect-ratio: 16 / 10; border: 1px dashed var(--line-paper); border-radius: var(--radius); display: grid; place-items: center; padding: 16px; text-align: center; font-size: 13px; color: var(--ink-muted); background: #fff; }
+.onto-legend { display: flex; gap: 8px; flex-wrap: wrap; font-size: 11px; margin-top: 6px; }
+.onto-legend span { display: inline-flex; align-items: center; gap: 4px; }
+.onto-legend i { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
+
+/* Details pane */
+.onto-details { border: 1px solid var(--line-paper); border-radius: var(--radius); background: #fff; padding: 10px 12px; display: flex; flex-direction: column; gap: 8px; min-height: 120px; font-size: 13px; }
+.onto-details h4 { margin: 0; font-size: 14px; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.onto-facts { display: flex; flex-direction: column; gap: 6px; padding: 0; margin: 0; list-style: none; }
+.onto-fact { padding: 6px 8px; border-left: 3px solid var(--teal); background: var(--paper-2, rgba(0, 0, 0, 0.04)); font-size: 12.5px; display: flex; flex-direction: column; gap: 3px; }
+.onto-fact-meta { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; font-size: 11px; color: var(--ink-muted); }
+.onto-prov { font-size: 12px; color: var(--ink-muted); display: flex; flex-direction: column; gap: 3px; }
+.onto-prov .mono { word-break: break-all; }
+
+/* Status grid, receipts, publish */
+.onto-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 6px 12px; }
+.onto-receipts { display: flex; flex-direction: column; gap: 6px; }
+.onto-receipt { border: 1px solid var(--line-paper); border-radius: var(--radius); background: #fff; padding: 6px 10px; font-size: 12px; }
+.onto-receipt summary { cursor: pointer; display: flex; gap: 8px; flex-wrap: wrap; align-items: center; list-style: none; }
+.onto-receipt summary::-webkit-details-marker { display: none; }
+.onto-receipt summary::before { content: '▸'; color: var(--ink-muted); }
+.onto-receipt[open] summary::before { content: '▾'; }
+.onto-receipt pre { margin: 6px 0 0; padding: 8px; background: var(--paper-2, rgba(0, 0, 0, 0.04)); border-radius: 6px; font-size: 11px; overflow: auto; max-height: 260px; white-space: pre-wrap; word-break: break-all; }
+.onto-publish { display: flex; flex-direction: column; gap: 8px; }
+.onto-publish .action-row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.onto-confirm { padding: 10px 12px; border-radius: var(--radius); background: rgba(217, 164, 65, 0.16); border: 1px solid rgba(217, 164, 65, 0.5); font-size: 13px; display: flex; flex-direction: column; gap: 8px; }
+.onto-confirm label { display: flex; gap: 6px; align-items: flex-start; font-size: 12.5px; }
+.onto-outcome { padding: 8px 10px; border-radius: var(--radius); border: 1px solid var(--line-paper); font-size: 13px; display: flex; flex-direction: column; gap: 4px; background: #fff; }
+.onto-outcome.is-accepted { border-color: rgba(79, 168, 119, 0.5); }
+.onto-outcome.is-uncertain { border-color: rgba(217, 164, 65, 0.6); background: rgba(217, 164, 65, 0.1); }
+.onto-outcome.is-failed { border-color: rgba(214, 96, 84, 0.5); background: rgba(214, 96, 84, 0.08); }
+.onto-history { font-size: 12px; display: flex; flex-direction: column; gap: 3px; padding-left: 0; list-style: none; margin: 0; }
+.onto-tech { font-size: 12.5px; }
+.onto-tech li { margin-bottom: 4px; }
+
+@media (max-width: 960px) {
+  .onto-graph-wrap { grid-template-columns: minmax(0, 1fr); }
+  .onto-head-aside { justify-content: flex-start; }
+}

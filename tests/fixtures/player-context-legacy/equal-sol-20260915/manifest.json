@@ -1,0 +1,117 @@
+{
+  "schema": "replay.ai-player-trial/1",
+  "trialId": "trial-96da6df3-2b5a-421c-bb80-2edbbf18c2c4",
+  "createdAt": "2026-09-15T00:24:05.313Z",
+  "updatedAt": "2026-09-15T00:25:59.202Z",
+  "config": {
+    "scenarioId": "crosscurrent-objectives/1",
+    "seed": "PAIR0001",
+    "seat": "blue",
+    "opponent": "objectives/1",
+    "ticksPerDecision": 270,
+    "opponentTicksPerCheck": 270,
+    "maxDecisions": 6,
+    "capTicks": 1800
+  },
+  "status": "complete",
+  "cursor": null,
+  "history": [
+    {
+      "decision": 0,
+      "tick": 45,
+      "snapshotId": "snap-3e826874a0aab813f445",
+      "choice": 1,
+      "meaning": "Build Defense Post at {\"tile\":33595,\"x\":95,\"y\":67}",
+      "intent": {
+        "type": "build_unit",
+        "unit": "Defense Post",
+        "tile": 33595
+      },
+      "key": "45:0:human001",
+      "responder": "gpt-5.6-sol",
+      "outcome": "outcomes/00"
+    },
+    {
+      "decision": 1,
+      "tick": 315,
+      "snapshotId": "snap-e8d6c469e5c447b54e07",
+      "choice": 0,
+      "meaning": "Expand into unclaimed adjoining territory (troops adjustable up to available forces)",
+      "intent": {
+        "type": "attack",
+        "targetID": null,
+        "troops": 22512
+      },
+      "key": "315:0:human001",
+      "responder": "gpt-5.6-sol",
+      "outcome": "outcomes/01"
+    },
+    {
+      "decision": 2,
+      "tick": 585,
+      "snapshotId": "snap-dfa4a742f0563c4e5567",
+      "choice": 0,
+      "meaning": "Expand into unclaimed adjoining territory (troops adjustable up to available forces)",
+      "intent": {
+        "type": "attack",
+        "targetID": null,
+        "troops": 43027
+      },
+      "key": "585:0:human001",
+      "responder": "gpt-5.6-sol",
+      "outcome": "outcomes/02"
+    },
+    {
+      "decision": 3,
+      "tick": 855,
+      "snapshotId": "snap-04feb72dd08eab1ce760",
+      "choice": 0,
+      "meaning": "Expand into unclaimed adjoining territory (troops adjustable up to available forces)",
+      "intent": {
+        "type": "attack",
+        "targetID": null,
+        "troops": 65539
+      },
+      "key": "855:0:human001",
+      "responder": "gpt-5.6-sol",
+      "outcome": "outcomes/03"
+    },
+    {
+      "decision": 4,
+      "tick": 1125,
+      "snapshotId": "snap-48acd073a2b2f76a646a",
+      "choice": 0,
+      "meaning": "Expand into unclaimed adjoining territory (troops adjustable up to available forces)",
+      "intent": {
+        "type": "attack",
+        "targetID": null,
+        "troops": 89227
+      },
+      "key": "1125:0:human001",
+      "responder": "gpt-5.6-sol",
+      "outcome": "outcomes/04"
+    },
+    {
+      "decision": 5,
+      "tick": 1395,
+      "snapshotId": "snap-a0d5e4637308af648362",
+      "choice": 4,
+      "meaning": "Transport 106021 forces (default share, adjustable) to opponent shore {\"tile\":16741,\"x\":241,\"y\":33}, 60 tiles from your coast; sampled option",
+      "intent": {
+        "type": "boat",
+        "dst": 16741,
+        "troops": 106021
+      },
+      "key": "1395:0:human001",
+      "responder": "gpt-5.6-sol",
+      "outcome": "outcomes/05"
+    }
+  ],
+  "claims": {
+    "timing": "accelerated-pause: the engine waits while the responder deliberates, then advances the declared ticks with no further Blue orders. The native continuous clock (100 ms wall-clock per tick, never waits) is not exercised.",
+    "responder": "The responder label is supplied by the operator and is not proof of inference; provider receipts are attached separately by the main integrator.",
+    "harnessModelCalls": 0,
+    "humanPlaytest": false,
+    "claim": "Measured legal play by an external responder against the scripted objectives/1 opponent in a fictional abstract game. Not evidence of fun, engagement, learning, AI-player quality or realistic doctrine."
+  }
+}

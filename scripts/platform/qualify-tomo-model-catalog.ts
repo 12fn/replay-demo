@@ -1,0 +1,6 @@
+import fs from 'node:fs';import assert from 'node:assert/strict';import {tomoMemberClient} from './tomo-member-client';
+const p=JSON.parse(fs.readFileSync('data/platform/tomo-conversation.json','utf8'));const c=await tomoMemberClient();try{
+ const models=await c.request('GET','/api/models');const rows=Array.isArray(models.data)?models.data:(models.data as any).items??(models.data as any).models;assert(Array.isArray(rows));const selected=rows.find((m:any)=>m.id===p.deploymentId);assert(selected,'Dedicated model absent from ordinary member inventory');
+ const agents=await c.request('GET','/api/agents');const ars=Array.isArray(agents.data)?agents.data:(agents.data as any).items??(agents.data as any).agents;assert(Array.isArray(ars));const agent=ars.find((a:any)=>a.id===p.agentId);assert(agent,'Member-owned observer absent');
+ const proof={at:new Date().toISOString(),model:selected,agent:{id:agent.id,name:agent.name},receipts:[models.receipt,agents.receipt],inferenceRequests:0,scope:'Actual member catalog selection; conversation not yet qualified.'};fs.writeFileSync('evidence/platform/tomo-model-member-catalog-1.json',JSON.stringify(proof,null,2)+'\n',{flag:'wx'});console.log(JSON.stringify(proof));
+}finally{await c.close();}

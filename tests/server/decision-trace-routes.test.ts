@@ -1,0 +1,21 @@
+import {afterEach,expect,it} from 'vitest';import express from 'express';import fs from 'node:fs';import os from 'node:os';import path from 'node:path';
+import {GameService} from '../../src/server/service';import {mountReviewRoutes} from '../../src/server/review-routes';
+const clean:(()=>void)[]=[];afterEach(()=>clean.splice(0).reverse().forEach(f=>f()));
+it('binds traces to the authorized active exercise, released side and requested historical cutoff',async()=>{
+ const dir=fs.mkdtempSync(path.join(os.tmpdir(),'trace-routes-')),s=new GameService(dir);clean.push(()=>fs.rmSync(dir,{recursive:true,force:true}),()=>s.close());const row=await s.create('Trace','plains'),w=s.world(row.id);for(let i=0;i<10;i++)s.tick(w);
+ const blue=s.store.event(row.id,3,'command','human','Blue choice',{commandId:'c-blue',origin:'human',intent:{type:'attack',troops:10},observation:{tick:2,side:'blue',fingerprint:'observed-blue',sourceIds:[]}},'blue');
+ const red=s.store.event(row.id,3,'command','red','Red choice',{commandId:'c-red',origin:'luna',intent:{type:'attack',troops:20}},'red');
+ s.store.event(row.id,8,'execution_feedback','engine','later',{commandId:'c-blue',feedback:{tick:8,status:'completed',observed:{kind:'construction',unitId:3}}},'blue');
+ const session={...s.defaultSession('commander'),activeId:row.id,playbackTick:null as number|null};let denied=false;const app=express();app.use((_q,r,n)=>{r.locals.session=session;n();});app.locals.guards={requireActive:(_q:any,r:any,n:any)=>denied?r.sendStatus(403):n(),requireWrite:(_q:any,_r:any,n:any)=>n()};mountReviewRoutes(app,s);const server=app.listen(0,'127.0.0.1');await new Promise<void>(r=>server.once('listening',r));clean.push(()=>server.close());const base=`http://127.0.0.1:${(server.address() as any).port}/api/review/decision-trace`;
+ const get=(eventId=blue,side='blue',cutoffTick=5,exerciseId=row.id,includeLater=false)=>fetch(`${base}?${new URLSearchParams({eventId,side,cutoffTick:String(cutoffTick),exerciseId,includeLater:String(includeLater)})}`);
+ const early=await get();expect(early.status).toBe(200);expect(early.headers.get('cache-control')).toContain('no-store');expect((await early.json()).execution.status).toBe('missing');
+ expect((await (await get(blue,'blue',10)).json()).execution.value[0].measuredTick).toBe(8);
+ expect((await get(red,'red')).status).toBe(403);expect((await get(blue,'blue',w.engine.game.ticks()+1)).status).toBe(409);expect((await get(blue,'blue',5,'other')).status).toBe(409);
+ session.playbackTick=5;expect((await get(blue,'blue',5,row.id,true)).status).toBe(409);expect((await get(blue,'blue',10)).status).toBe(409);
+ w.row.status='completed';expect((await get(red,'red')).status).toBe(200);
+ const later=await (await get(blue,'blue',5,row.id,true)).json();expect(later.review).toEqual({viewTick:5,scope:'later-outcomes'});expect(later.cutoffTick).toBe(w.engine.game.ticks());expect(later.execution.value[0].measuredTick).toBe(8);expect(session.playbackTick).toBe(5);
+ const asOf=await (await get()).json();expect(asOf.review).toEqual({viewTick:5,scope:'as-of'});expect(asOf.execution.status).toBe('missing');
+ session.playbackTick=1;expect((await get(blue,'blue',1,row.id,true)).status).toBe(404);session.playbackTick=5;
+ expect((await get(blue,'blue',6,row.id,true)).status).toBe(409);
+ denied=true;expect((await get()).status).toBe(403);
+});

@@ -1,0 +1,401 @@
+# REPLAY AI-player trial: decision 5
+
+You are the Blue player in a fictional abstract strategy game scored by stations and reserves. Pursue the strongest legal continuation for Blue. Choose exactly one candidate from `candidates` by its index, or "hold" to issue no order this decision.
+
+This harness accepts only a candidate index or "hold". Troop amounts, targets and tiles are fixed exactly as listed; you cannot adjust them.
+
+Cadence: Equal cadence: Blue and Red each get one order opportunity per 270 ticks. Red's checks are counted from Blue's first decision tick; orders chosen at the same tick execute together on the next tick.
+
+Station `x`/`y` are station centre coordinates on the same grid as candidate tiles. `sincePreviousObservation`, when present, lists public changes since your last decision.
+
+Reply with only this JSON object and nothing else:
+
+```json
+{"snapshotId":"snap-48acd073a2b2f76a646a","choice":"<candidate index as a number, or \"hold\">","rationale":"<one to three sentences>"}
+```
+
+## Observation
+
+```json
+{
+  "snapshotId": "snap-48acd073a2b2f76a646a",
+  "game": "Fictional abstract strategy game (not a model of any real force or place).",
+  "seat": "blue",
+  "decision": 5,
+  "maxDecisions": 6,
+  "tick": 1125,
+  "simulatedSeconds": 112.5,
+  "timing": "Accelerated pause: the game waits for your reply, then advances 270 ticks (27 simulated seconds) with no further Blue orders. Attacks already under way continue. The run stops at tick 1800.",
+  "cadence": {
+    "blueTicksPerDecision": 270,
+    "redTicksPerCheck": 270,
+    "redChecksPerBlueDecision": 1,
+    "note": "Equal cadence: Blue and Red each get one order opportunity per 270 ticks. Red's checks are counted from Blue's first decision tick; orders chosen at the same tick execute together on the next tick."
+  },
+  "ownResources": {
+    "tick": 1125,
+    "side": "blue",
+    "troops": 446137,
+    "maxTroops": 501930.12484054203,
+    "reserveRatio": 0.889,
+    "gold": 122300,
+    "tiles": 6895,
+    "attacksInFlight": [],
+    "troopsCommitted": 0,
+    "structures": 1
+  },
+  "opponentPublic": {
+    "side": "red",
+    "id": "lp3v1y9c",
+    "tiles": 5508,
+    "troops": 606990,
+    "alive": true,
+    "attacksInFlight": 0,
+    "structures": 1
+  },
+  "objectiveBoard": {
+    "rules": "Hold at least 60% of a station’s marked land tiles to control it. Every 30 seconds, each controlled station earns 1 point; the priority station earns 2 extra. Holding any station with at least 30% of your force capacity in reserve earns 2 more. Priority changes every 3 minutes in the displayed order. At 20 minutes, the higher point total wins; a tie is a draw. Elimination ends play earlier with the surviving side winning. Points describe game outcomes, never learning mastery.",
+    "scores": {
+      "blue": 15,
+      "red": 11
+    },
+    "priorityId": "aster",
+    "nextAwardTick": 1200,
+    "nextPriorityTick": 1801,
+    "ownReserve": {
+      "fraction": 0.888842844692243,
+      "eligible": true
+    },
+    "stations": [
+      {
+        "id": "aster",
+        "name": "Aster",
+        "x": 95,
+        "y": 67,
+        "controller": "blue",
+        "heldTiles": {
+          "blue": 81,
+          "red": 0
+        },
+        "totalTiles": 81,
+        "priority": true
+      },
+      {
+        "id": "beacon",
+        "name": "Beacon",
+        "x": 225,
+        "y": 61,
+        "controller": null,
+        "heldTiles": {
+          "blue": 0,
+          "red": 0
+        },
+        "totalTiles": 40,
+        "priority": false
+      },
+      {
+        "id": "cedar",
+        "name": "Cedar",
+        "x": 275,
+        "y": 160,
+        "controller": null,
+        "heldTiles": {
+          "blue": 0,
+          "red": 0
+        },
+        "totalTiles": 81,
+        "priority": false
+      },
+      {
+        "id": "delta",
+        "name": "Delta",
+        "x": 360,
+        "y": 85,
+        "controller": "red",
+        "heldTiles": {
+          "blue": 0,
+          "red": 81
+        },
+        "totalTiles": 81,
+        "priority": false
+      },
+      {
+        "id": "ember",
+        "name": "Ember",
+        "x": 429,
+        "y": 185,
+        "controller": "red",
+        "heldTiles": {
+          "blue": 0,
+          "red": 40
+        },
+        "totalTiles": 40,
+        "priority": false
+      }
+    ]
+  },
+  "legalNote": "Sampled: up to three unclaimed shores (nearest and farthest by distance from your coast) and two nearest attackable opponent shores, each re-checked by the engine validator; not an exhaustive or optimal plan",
+  "previousDecisions": [
+    {
+      "decision": 1,
+      "tick": 45,
+      "choice": 1,
+      "meaning": "Build Defense Post at {\"tile\":33595,\"x\":95,\"y\":67}",
+      "observed": [
+        "construction-started@46",
+        "construction-completed@97"
+      ]
+    },
+    {
+      "decision": 2,
+      "tick": 315,
+      "choice": 0,
+      "meaning": "Expand into unclaimed adjoining territory (amount fixed by this harness)",
+      "observed": []
+    },
+    {
+      "decision": 3,
+      "tick": 585,
+      "choice": 0,
+      "meaning": "Expand into unclaimed adjoining territory (amount fixed by this harness)",
+      "observed": []
+    },
+    {
+      "decision": 4,
+      "tick": 855,
+      "choice": 0,
+      "meaning": "Expand into unclaimed adjoining territory (amount fixed by this harness)",
+      "observed": []
+    }
+  ],
+  "sincePreviousObservation": {
+    "fromTick": 855,
+    "toTick": 1125,
+    "own": {
+      "tiles": 3425,
+      "troops": 118438,
+      "gold": 27000,
+      "structures": 0
+    },
+    "opponentPublic": {
+      "tiles": 0,
+      "troops": 258891,
+      "structures": 1,
+      "alive": true
+    },
+    "points": {
+      "blue": 5,
+      "red": 4
+    },
+    "stations": [
+      {
+        "id": "aster",
+        "controller": {
+          "before": "blue",
+          "now": "blue"
+        },
+        "heldTilesChange": {
+          "blue": 0,
+          "red": 0
+        }
+      },
+      {
+        "id": "beacon",
+        "controller": {
+          "before": null,
+          "now": null
+        },
+        "heldTilesChange": {
+          "blue": 0,
+          "red": 0
+        }
+      },
+      {
+        "id": "cedar",
+        "controller": {
+          "before": null,
+          "now": null
+        },
+        "heldTilesChange": {
+          "blue": 0,
+          "red": 0
+        }
+      },
+      {
+        "id": "delta",
+        "controller": {
+          "before": "red",
+          "now": "red"
+        },
+        "heldTilesChange": {
+          "blue": 0,
+          "red": 0
+        }
+      },
+      {
+        "id": "ember",
+        "controller": {
+          "before": "red",
+          "now": "red"
+        },
+        "heldTilesChange": {
+          "blue": 0,
+          "red": 0
+        }
+      }
+    ],
+    "note": "Public totals only, computed from your previous and current observations. It does not show where tiles changed hands or what the opponent ordered."
+  },
+  "candidates": [
+    {
+      "index": 0,
+      "intent": {
+        "type": "attack",
+        "targetID": null,
+        "troops": 89227
+      },
+      "meaning": "Expand into unclaimed adjoining territory (amount fixed by this harness)"
+    },
+    {
+      "index": 1,
+      "intent": {
+        "type": "boat",
+        "dst": 5649,
+        "troops": 89227
+      },
+      "meaning": "Transport 89227 forces (amount fixed by this harness) to unclaimed shore {\"tile\":5649,\"x\":149,\"y\":11}, 2 tiles from your coast; sampled option",
+      "costGold": 0
+    },
+    {
+      "index": 2,
+      "intent": {
+        "type": "boat",
+        "dst": 6585,
+        "troops": 89227
+      },
+      "meaning": "Transport 89227 forces (amount fixed by this harness) to unclaimed shore {\"tile\":6585,\"x\":85,\"y\":13}, 2 tiles from your coast; sampled option",
+      "costGold": 0
+    },
+    {
+      "index": 3,
+      "intent": {
+        "type": "boat",
+        "dst": 123469,
+        "troops": 89227
+      },
+      "meaning": "Transport 89227 forces (amount fixed by this harness) to unclaimed shore {\"tile\":123469,\"x\":469,\"y\":246}, 491 tiles from your coast; sampled option",
+      "costGold": 0
+    },
+    {
+      "index": 4,
+      "intent": {
+        "type": "build_unit",
+        "unit": "Defense Post",
+        "tile": 41105
+      },
+      "meaning": "Build Defense Post at {\"tile\":41105,\"x\":105,\"y\":82}",
+      "costGold": 100000
+    },
+    {
+      "index": 5,
+      "intent": {
+        "type": "build_unit",
+        "unit": "Defense Post",
+        "tile": 28619
+      },
+      "meaning": "Build Defense Post at {\"tile\":28619,\"x\":119,\"y\":57}",
+      "costGold": 100000
+    },
+    {
+      "index": 6,
+      "intent": {
+        "type": "build_unit",
+        "unit": "Defense Post",
+        "tile": 10576
+      },
+      "meaning": "Build Defense Post at {\"tile\":10576,\"x\":76,\"y\":21}",
+      "costGold": 100000
+    },
+    {
+      "index": 7,
+      "intent": {
+        "type": "build_unit",
+        "unit": "Defense Post",
+        "tile": 8569
+      },
+      "meaning": "Build Defense Post at {\"tile\":8569,\"x\":69,\"y\":17}",
+      "costGold": 100000
+    },
+    {
+      "index": 8,
+      "intent": {
+        "type": "build_unit",
+        "unit": "Defense Post",
+        "tile": 2607
+      },
+      "meaning": "Build Defense Post at {\"tile\":2607,\"x\":107,\"y\":5}",
+      "costGold": 100000
+    },
+    {
+      "index": 9,
+      "intent": {
+        "type": "build_unit",
+        "unit": "Defense Post",
+        "tile": 13647
+      },
+      "meaning": "Build Defense Post at {\"tile\":13647,\"x\":147,\"y\":27}",
+      "costGold": 100000
+    },
+    {
+      "index": 10,
+      "intent": {
+        "type": "build_unit",
+        "unit": "Defense Post",
+        "tile": 24099
+      },
+      "meaning": "Build Defense Post at {\"tile\":24099,\"x\":99,\"y\":48}",
+      "costGold": 100000
+    },
+    {
+      "index": 11,
+      "intent": {
+        "type": "build_unit",
+        "unit": "Defense Post",
+        "tile": 28635
+      },
+      "meaning": "Build Defense Post at {\"tile\":28635,\"x\":135,\"y\":57}",
+      "costGold": 100000
+    },
+    {
+      "index": 12,
+      "intent": {
+        "type": "build_unit",
+        "unit": "Defense Post",
+        "tile": 23575
+      },
+      "meaning": "Build Defense Post at {\"tile\":23575,\"x\":75,\"y\":47}",
+      "costGold": 100000
+    },
+    {
+      "index": 13,
+      "intent": {
+        "type": "build_unit",
+        "unit": "Defense Post",
+        "tile": 14059
+      },
+      "meaning": "Build Defense Post at {\"tile\":14059,\"x\":59,\"y\":28}",
+      "costGold": 100000
+    },
+    {
+      "index": 14,
+      "intent": {
+        "type": "build_unit",
+        "unit": "Defense Post",
+        "tile": 33063
+      },
+      "meaning": "Build Defense Post at {\"tile\":33063,\"x\":63,\"y\":66}",
+      "costGold": 100000
+    }
+  ]
+}
+```

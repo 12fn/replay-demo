@@ -1,0 +1,25 @@
+/** Isolated synthetic browser fixture. Never opens native sessions, providers or the user's live exercise. */
+import fs from 'node:fs';import os from 'node:os';import path from 'node:path';
+import {GameService} from '../src/server/service';
+import {createApp,type AppConfig} from '../src/server/native-http';
+import {mountPracticeHistoryRoutes} from '../src/server/practice-history-routes';
+import {mountLearningRoutes} from '../src/server/learning-routes';
+import {mountReviewRoutes} from '../src/server/review-routes';
+import {mountReviewFeedbackRoutes} from '../src/server/review-feedback-routes';
+import {DeterministicClient} from '../src/inference';
+console.debug=()=>{};
+const dir=fs.mkdtempSync(path.join(os.tmpdir(),'replay-practice-preview-')),service=new GameService(dir);
+service.luna=new DeterministicClient({respond:()=>{throw new Error('Preview cannot run inference');}});service.baseline=()=>{};
+const config:AppConfig={mode:'local-demo',allowedOrigins:[],cookieSecure:false};
+const row=await service.create('Synthetic UI fixture · Taiwan decision review','world',undefined,'taiwan-strait/1');
+row.options.ownerSubject='demo-commander';service.store.putExercise(row);const w=service.world(row.id);
+for(let i=0;i<100;i++)service.tick(w);
+const report=(id:string,tick:number,supersedes?:string)=>service.store.putReport(row.id,{id,tick,side:'blue',title:'Fictional desk report',body:'Synthetic browser fixture only; no real intelligence.',source:'Exercise desk',synthetic:true,...(supersedes?{supersedes}:{})});
+report('desk-early',5);report('desk-correction',70,'desk-early');
+const event=service.store.event(row.id,40,'command','demo-commander','Synthetic recorded expansion',{origin:'human',commandId:'fixture-command',intent:{type:'attack',targetID:null,troops:20},observation:{tick:38,player:{troops:100}},admittedTick:39,rationaleTiming:'contemporaneous',rationale:'Wait for an independent report before committing more reserve.',sourceIds:['desk-early']},'blue');
+service.store.event(row.id,80,'decision_log','demo-commander','Synthetic later reflection',{commandEventId:event,commandId:'fixture-command',orderTick:40,orderObservedTick:38,text:'The later correction changed my confidence in the first report.',sourceIds:['desk-early'],timing:'post-hoc',recordedAt:'2026-09-15T04:00:00Z'},'blue');
+service.store.event(row.id,90,'command','demo-commander','Synthetic citation-only order',{origin:'human',intent:{type:'attack',targetID:null,troops:10},sourceIds:['desk-correction']},'blue');
+row.status='completed';row.agentEnabled=false;service.store.putExercise(row);
+const app=createApp({service,config,root:process.cwd(),mount(app){mountPracticeHistoryRoutes(app,service,config);mountLearningRoutes(app,service);mountReviewFeedbackRoutes(app,service);mountReviewRoutes(app,service);}});
+const server=app.listen(5188,'127.0.0.1',()=>console.log(JSON.stringify({url:'http://127.0.0.1:5188',mode:'synthetic-local-preview',exerciseId:row.id,realModelCalls:0,nativeSessions:0})));
+for(const signal of ['SIGINT','SIGTERM'] as const)process.on(signal,()=>{server.close();service.close();fs.rmSync(dir,{recursive:true,force:true});process.exit(0);});

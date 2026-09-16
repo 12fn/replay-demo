@@ -1,3 +1,4 @@
+import {dollarAllowance} from '../budget-presentation';
 import {opponentPresentation} from '../model-presentation';
 import { PageHeading, WorkspaceTabs } from '../components/Workspace';
 import {useEffect,useState} from 'react';
@@ -63,10 +64,10 @@ export function PlatformView({ ctx }: { ctx: ViewContext }) {
           <div className="stat-grid wide">
             <Stat label="Model opponent" value={<span className="mono">{opponentPresentation(ov.exercises.find(e => e.id === ov.activeId)?.agentEnabled, p.model, p.inferenceRoute)}</span>} />
             <Stat label={p.inferenceRoute==='kamiwaza-local'?'Local model requests':'Paid requests'} value={p.requests} />
-            <Stat label="API charges" value={fmtUsd(p.spentUsd)} hint={p.inferenceRoute==='kamiwaza-local'?'Local hardware cost not measured':`cap ${fmtUsd(p.capUsd)}`} />
+            <Stat label="API charges" value={fmtUsd(p.spentUsd)} hint={p.inferenceRoute==='kamiwaza-local'?'Local hardware cost not measured':p.capUsd==='unlimited'?'Unlimited application allowance':`cap ${dollarAllowance(p.capUsd)}`} />
             <Stat label="Traces recorded" value={p.traceCount} />
           </div>
-          {p.capUsd>0&&<Meter value={p.spentUsd} max={p.capUsd} label="Spend against cap" />}
+          {typeof p.capUsd==='number'&&p.capUsd>0&&<Meter value={p.spentUsd} max={p.capUsd} label="Spend against cap" />}
           <p className="muted small">
             Counts and spend are the backend's ledger figures. The model opponent is off by default and is only enabled explicitly from the Exercise page.
           </p>

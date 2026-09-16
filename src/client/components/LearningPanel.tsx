@@ -1,3 +1,4 @@
+import {budgetCapReached,budgetUsageText} from '../budget-presentation';
 import {modelPresentation,configuredModelPresentation} from '../model-presentation';
 import {NoteIntakePanel} from './NoteIntakePanel';
 import {DecisionRetrievalPanel} from './DecisionRetrievalPanel';
@@ -434,7 +435,7 @@ function DebriefSection({ ov, orders, completed, instructor, budget, onOpen }: {
 
   const ownSelectedOrder = orders.some(o => o.id === eventId && o.actor === ov.identity.subject);
   const allowed = (completed || instructor) && ownSelectedOrder;
-  const capReached = liveBudget.requestsUsed >= liveBudget.maxRequests || (liveBudget.maxUsd>0 && liveBudget.committedUsd >= liveBudget.maxUsd);
+  const capReached = budgetCapReached(liveBudget);
   const generate = async () => {
     setBusy(true);
     setErr(null);
@@ -455,7 +456,7 @@ function DebriefSection({ ov, orders, completed, instructor, budget, onOpen }: {
     <Panel
       title={<><Sparkles size={15} aria-hidden="true" /> Model debrief of one order</>}
       className="learning-debrief"
-      aside={<span className="mono small muted" title="Project inference budget: API charges and model requests">{fmtUsd(liveBudget.committedUsd)} / {fmtUsd(liveBudget.maxUsd)} · {liveBudget.requestsUsed}/{liveBudget.maxRequests} requests</span>}
+      aside={<span className="mono small muted" title="Project inference budget: API charges and model requests">{budgetUsageText(liveBudget)}</span>}
     >
       {orders.length === 0 ? (
         <Empty>{instructor ? 'No participant orders are recorded in this exercise.' : 'No orders of yours are recorded in this exercise.'}</Empty>

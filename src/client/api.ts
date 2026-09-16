@@ -147,7 +147,7 @@ export interface PlatformStatus {
   model: string;
   requests: number;
   spentUsd: number;
-  capUsd: number;
+  capUsd: number | 'unlimited';
   traceCount: number;
   ontologyStatus: string;
   details: string[];

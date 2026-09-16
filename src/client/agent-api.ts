@@ -1,3 +1,4 @@
+import type {BudgetLimit, Allowance} from '../inference/allowance';
 // Client contract for /api/agents/*. Mirrors src/server/agent-routes.ts. Only fields the panel renders are declared.
 import { ApiError, type Side, type StaffTask } from './api';
 
@@ -7,7 +8,7 @@ export type WatchKind = 'provenance-watch' | 'model-staff-agent';
 
 export interface ToolSpec { name: string; kind: ToolKind; description: string; args: { type: 'object'; properties: Record<string, unknown>; required: string[] } }
 
-export interface Budget { requestsUsed: number; maxRequests: number; committedUsd: number; maxUsd: number }
+export interface Budget { allowance?: Allowance; requestsUsed: number; maxRequests: BudgetLimit; committedUsd: number; maxUsd: BudgetLimit }
 
 export interface ToolCatalog {
   exerciseId: string;

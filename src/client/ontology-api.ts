@@ -1,3 +1,4 @@
+import type {BudgetLimit, Allowance} from '../inference/allowance';
 // Client contract for /api/ontology*. Mirrors src/server/ontology-routes.ts; only fields the
 // panel renders are declared. The browser never sees a platform token, client or secret.
 import { ApiError } from './api';
@@ -118,11 +119,11 @@ export interface PublishRecord {
   note: string;
 }
 
-export interface Budget {
+export interface Budget { allowance?: Allowance;
   requestsUsed: number;
-  maxRequests: number;
+  maxRequests: BudgetLimit;
   committedUsd: number;
-  maxUsd: number;
+  maxUsd: BudgetLimit;
   bridgeRequests: number;
   bridgePurpose: string;
 }

@@ -41,6 +41,8 @@ For frontend development, run `pnpm dev:api` and `pnpm dev` in separate terminal
 
 Paid inference starts disabled. Configure provider credentials only on the server, outside Git. The application's default ledger reserves calls before execution and caps a fresh local project at **100 requests and USD 5**. An existing deployment has its own persisted usage; cloning this source does not copy its remaining allowance or private records.
 
+An explicitly configured sponsored deployment can select an **Unlimited application allowance** while retaining every usage receipt and per-request limit. This requires the sponsored server credential and project configuration described in [the model configuration contract](docs/model-configuration.md); it does not change provider billing or rate limits, and does not enable background agents.
+
 ## Native Kamiwaza deployment
 
 The event demonstration runs on an ARM64 Spark under Kamiwaza 1.2. Its successful debrief qualification used an external API model. App deployment on a Spark does not imply that the model ran on that Spark's GPU.

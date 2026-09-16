@@ -101,5 +101,5 @@ export function mountLearningRoutes(app: express.Router, service: GameService) {
 
 function budgetOf(service: GameService) {
   const s = service.ledger.summary();
-  return { requestsUsed: s.requestsUsed, maxRequests: s.maxRequests, committedUsd: s.committedUsd, maxUsd: s.maxUsd };
+  return { allowance:s.allowance,requestsUsed: s.requestsUsed, maxRequests: s.maxRequests, committedUsd: s.committedUsd, maxUsd: s.maxUsd };
 }

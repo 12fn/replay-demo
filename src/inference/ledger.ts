@@ -21,6 +21,7 @@
 import { DatabaseSync } from "node:sqlite";
 import { randomUUID } from "node:crypto";
 import { MICRO_PER_USD, microToUsd, usdToMicro } from "./pricing.ts";
+import type {Allowance, BudgetLimit} from './allowance';
 
 export type ReceiptStatus = "reserved" | "completed" | "failed" | "uncertain";
 
@@ -50,12 +51,13 @@ export interface Receipt {
 
 export interface LedgerSummary {
   path: string;
-  maxUsd: number;
-  maxRequests: number;
-  maxMicro: number;
+  allowance: Allowance;
+  maxUsd: BudgetLimit;
+  maxRequests: BudgetLimit;
+  maxMicro: BudgetLimit;
   /** Rows counted against the request cap (everything that reached the network). */
   requestsUsed: number;
-  remainingRequests: number;
+  remainingRequests: BudgetLimit;
   /** Settled cost of completed rows. */
   completedMicro: number;
   /** Held cost of rows still in flight. */
@@ -64,15 +66,15 @@ export interface LedgerSummary {
   uncertainMicro: number;
   /** completed + reserved + uncertain; this is what the cap is checked against. */
   committedMicro: number;
-  remainingMicro: number;
+  remainingMicro: BudgetLimit;
   committedUsd: number;
   counts: Record<ReceiptStatus, number>;
 }
 
 export interface BudgetLedgerOptions {
   path: string;
-  maxUsd?: number;
-  maxRequests?: number;
+  maxUsd?: BudgetLimit;
+  maxRequests?: BudgetLimit;
 }
 
 export interface ReserveInput {
@@ -156,20 +158,21 @@ function requireInt(value: number, label: string): number {
 
 export class BudgetLedger {
   readonly path: string;
-  readonly maxUsd: number;
-  readonly maxRequests: number;
-  readonly maxMicro: number;
+  readonly maxUsd: BudgetLimit;
+  readonly maxRequests: BudgetLimit;
+  readonly maxMicro: BudgetLimit;
   private db: DatabaseSync | null;
 
   constructor({ path, maxUsd = 5, maxRequests = 100 }: BudgetLedgerOptions) {
     if (typeof path !== "string" || path.length === 0) throw new TypeError("ledger path is required");
-    if (!Number.isSafeInteger(maxRequests) || maxRequests < 0) {
+    if ((maxUsd === 'unlimited') !== (maxRequests === 'unlimited')) throw new TypeError('Unlimited allowance requires both request and dollar limits to be unlimited');
+    if (maxRequests !== 'unlimited' && (!Number.isSafeInteger(maxRequests) || maxRequests < 0)) {
       throw new RangeError("maxRequests must be a non-negative integer");
     }
     this.path = path;
     this.maxUsd = maxUsd;
     this.maxRequests = maxRequests;
-    this.maxMicro = usdToMicro(maxUsd);
+    this.maxMicro = maxUsd === 'unlimited' ? 'unlimited' : usdToMicro(maxUsd);
     this.db = new DatabaseSync(path);
     if (path !== ":memory:") {
       this.db.exec("PRAGMA journal_mode = WAL;");
@@ -200,13 +203,13 @@ export class BudgetLedger {
     db.exec("BEGIN IMMEDIATE;");
     try {
       const totals = this.totalsUnlocked();
-      if (totals.requestsUsed + 1 > this.maxRequests) {
+      if (this.maxRequests !== 'unlimited' && totals.requestsUsed + 1 > this.maxRequests) {
         throw new BudgetCapError(
           "requests",
           `request cap reached (${totals.requestsUsed}/${this.maxRequests})`,
         );
       }
-      if (totals.committedMicro + reservedMicro > this.maxMicro) {
+      if (this.maxMicro !== 'unlimited' && totals.committedMicro + reservedMicro > this.maxMicro) {
         throw new BudgetCapError(
           "dollars",
           `dollar cap would be exceeded (committed ${microToUsd(totals.committedMicro).toFixed(6)} + reserve ${microToUsd(reservedMicro).toFixed(6)} > ${this.maxUsd} USD)`,
@@ -305,16 +308,17 @@ export class BudgetLedger {
     const t = this.totalsUnlocked();
     return {
       path: this.path,
+      allowance: this.maxUsd === 'unlimited' ? 'unlimited' : 'capped',
       maxUsd: this.maxUsd,
       maxRequests: this.maxRequests,
       maxMicro: this.maxMicro,
       requestsUsed: t.requestsUsed,
-      remainingRequests: Math.max(0, this.maxRequests - t.requestsUsed),
+      remainingRequests: this.maxRequests === 'unlimited' ? 'unlimited' : Math.max(0, this.maxRequests - t.requestsUsed),
       completedMicro: t.completedMicro,
       reservedMicro: t.reservedMicro,
       uncertainMicro: t.uncertainMicro,
       committedMicro: t.committedMicro,
-      remainingMicro: Math.max(0, this.maxMicro - t.committedMicro),
+      remainingMicro: this.maxMicro === 'unlimited' ? 'unlimited' : Math.max(0, this.maxMicro - t.committedMicro),
       committedUsd: t.committedMicro / MICRO_PER_USD,
       counts: t.counts,
     };

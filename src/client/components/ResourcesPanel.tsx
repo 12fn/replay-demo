@@ -1,3 +1,4 @@
+import {dollarAllowance} from '../budget-presentation';
 import {opponentPresentation} from '../model-presentation';
 import { useState } from 'react';
 import { Bot, ShieldOff } from 'lucide-react';
@@ -88,7 +89,7 @@ export function ResourcesPanel({ ov, state, active, assignedSide, refresh, canCo
               <>
                 <p className="small">
                   <Bot size={13} aria-hidden="true" /> Model opponent is enabled. Model requests so far: {ov.platform.requests} ·{' '}
-                  {fmtUsd(ov.platform.spentUsd)} of {fmtUsd(ov.platform.capUsd)}.
+                  {fmtUsd(ov.platform.spentUsd)} of {dollarAllowance(ov.platform.capUsd)}.
                 </p>
                 <button type="button" className="btn btn-sm" disabled={agentBusy} onClick={() => void setAgent(false)}>
                   {agentBusy ? 'Stopping…' : 'Stop model opponent'}

@@ -1,6 +1,6 @@
 # Server model configuration contract
 
-Configuration available in REPLAY 0.29.4. Model performance and project funding must be checked for each deployment.
+Configuration available in REPLAY 0.29.5. Model performance and project funding must be checked for each deployment.
 
 ## Shared server secret interface
 
@@ -20,6 +20,7 @@ A project-scoped key may not require the optional headers. Successful authentica
 REPLAY_MODEL_BILLING=external
 REPLAY_MODEL_TRANSPORT=responses
 REPLAY_MODEL_CREDENTIAL_MODE=sponsored
+REPLAY_MODEL_ALLOWANCE=capped
 REPLAY_MODEL_ID=gpt-5.6-sol
 REPLAY_MODEL_REASONING=low
 REPLAY_CHAT_REASONING=low
@@ -38,7 +39,17 @@ REPLAY_CHAT_REASONING=low
 
 Sol uses $4/M uncached input, $0.40/M cached input, $20/M output, and a conservative 1.25× input cache-write multiplier. Luna retains $0.20/$0.02/$1.20 per million tokens. Both transports reserve and settle using the selected model. All output usage includes reasoning tokens. The enforced input limit is at most 32 KiB, well below the >272k input-token pricing threshold. Prices were checked 2026-09-16; reverify before later deployments. [Sol pricing](https://developers.openai.com/api/docs/models/gpt-5.6-sol), [Luna pricing](https://developers.openai.com/api/docs/models/gpt-5.6-luna).
 
-Swap the injected server key and optional IDs, then restart the server. Preserve the existing data directory, `inference.sqlite` and its WAL files: model/key changes do not reset usage or increase the $5/100-request application limits. Existing uncertain requests keep their full reservations; requests never retry automatically. A provider-reported different model is rejected and marked uncertain for reconciliation. Separate apps keep separate durable ledgers; sharing a project key does not merge or replace their caps. The account's aggregate usage remains a separate operational control.
+Swap the injected server key and optional IDs, then restart the server. Preserve the existing data directory, `inference.sqlite` and its WAL files: model/key changes do not reset usage or change the default $5/100-request application limits. Existing uncertain requests keep their full reservations; requests never retry automatically. A provider-reported different model is rejected and marked uncertain for reconciliation. Separate apps keep separate durable ledgers; sharing a project key does not merge their accounting. The account's aggregate usage remains a separate operational control.
+
+### Explicit unlimited sponsored allowance
+
+`REPLAY_MODEL_ALLOWANCE` accepts exactly `capped` (the default) or `unlimited`. Unlimited removes only the application's cumulative request and dollar caps. It requires the external OpenAI route, `REPLAY_MODEL_CREDENTIAL_MODE=sponsored`, a nonblank explicit server `OPENAI_API_KEY`, and an explicit validated `OPENAI_PROJECT`. The deployment must bind the intended sponsored Secret and project before enabling it. Local or standard credential modes, missing credentials/project, and unsupported allowance values fail during configuration, before requests or ledger reservations. There is no credential-file fallback for sponsored mode.
+
+The same `inference.sqlite` retains all earlier completed, failed, reserved and uncertain receipts. Local history remains separately stored in `local-inference.sqlite`; the local route keeps its default 100-request, zero-external-dollar allowance. Returning to capped mode preserves history and refuses new reservations if the retained usage already reaches either cap.
+
+JSON summaries use the literal string `"unlimited"` for `maxRequests`, `maxUsd`, and full-ledger `maxMicro`, `remainingRequests`, and `remainingMicro`. They report `allowance: "unlimited"`; actual usage counts and committed/reserved/uncertain costs remain finite numeric totals. The UI displays **Unlimited** and those totals, without a percentage meter for an absent cap.
+
+This is an application allowance, not a claim of unlimited provider credits or rate limits. Per-request input/output bounds and timeouts, per-task tool/completion limits, bridge-specific limits and native authority checks remain enforced. Calls never retry automatically. Paid opponent and staff loops remain off after restart until explicitly enabled; selecting unlimited does not start them. Sol with low reasoning remains the selected deployment route when the settings above are used.
 
 Header values and the key are excluded from client serialization, errors and receipt metadata, including provider-echoed IDs/codes. Do not log or serialize the raw `readModelRoute` return object; it is an internal transient credential carrier consumed by the service constructor.
 

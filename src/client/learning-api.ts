@@ -1,3 +1,4 @@
+import type {BudgetLimit, Allowance} from '../inference/allowance';
 // Client contract for /api/learning/*. Mirrors src/server/learning-routes.ts and the
 // learning module's public types; only fields the panel renders are declared here.
 import { ApiError } from './api';
@@ -248,11 +249,11 @@ export interface Dossier {
   limitations: string[];
 }
 
-export interface Budget {
+export interface Budget { allowance?: Allowance;
   requestsUsed: number;
-  maxRequests: number;
+  maxRequests: BudgetLimit;
   committedUsd: number;
-  maxUsd: number;
+  maxUsd: BudgetLimit;
 }
 
 export interface DossierResponse {

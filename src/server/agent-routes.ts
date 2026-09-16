@@ -74,7 +74,7 @@ export function mountAgentRoutes(app: express.Router, service: GameService) {
     const session = body.enabled ? requireAgents(res) : requireWrite(res);
     const task = service.setTaskModel(session, idSchema.parse(req.params.id), body.enabled);
     const s = service.ledger.summary();
-    res.json({ task, budget: { requestsUsed: s.requestsUsed, maxRequests: s.maxRequests, committedUsd: s.committedUsd, maxUsd: s.maxUsd } });
+    res.json({ task, budget: { allowance:s.allowance,requestsUsed: s.requestsUsed, maxRequests: s.maxRequests, committedUsd: s.committedUsd, maxUsd: s.maxUsd } });
   }));
 
   /** Task with its external trace (updates, model decisions, tool receipts, rejections). Own side only unless instructor or completed. */

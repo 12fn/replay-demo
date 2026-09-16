@@ -84,7 +84,7 @@ export class GameService {
     this.observations=new ObservationReceipts(dataDir);
     this.teams=new ExerciseTeams(this.store);
     this.localInference=route.local;
-    this.ledger=new BudgetLedger({path:path.join(dataDir,route.ledgerFile),maxUsd:route.maxUsd,maxRequests:100});
+    this.ledger=new BudgetLedger({path:path.join(dataDir,route.ledgerFile),maxUsd:route.maxUsd,maxRequests:route.maxRequests});
     const options={apiKey:route.apiKey,ledger:this.ledger,baseUrl:route.baseUrl,model:route.model,local:route.local,timeoutMs:route.timeoutMs,maxInputBytes:APP_MODEL_INPUT_MAX_BYTES,sponsored:route.sponsored,openaiProject:route.openaiProject,openaiOrganization:route.openaiOrganization,reasoningEffort:route.reasoningEffort};
     this.luna=new LunaClient(options);
     this.lunaChat=new LunaChatClient({...options,reasoningEffort:route.chatReasoningEffort});
@@ -318,7 +318,7 @@ export class GameService {
     return {exerciseId:w.row.id,side,scope,tools:toolsForScope(scope).map(t=>({name:t.name,kind:t.kind,description:t.description,args:t.args})),
       staffTools:toolsForScope('staff').map(t=>t.name),unavailable:UNAVAILABLE_CAPABILITIES,pulseBudget:{maxSteps:4,maxCompletions:2},
       opponent:{enabled:w.row.agentEnabled,playstyle:playstyleFor(String(w.row.options?.simulationId??'')),model:w.row.agentEnabled?(this.luna.model??'luna'):controllerLabel(w.row.options).toLowerCase()},
-      budget:{requestsUsed:budget.requestsUsed,maxRequests:budget.maxRequests,committedUsd:budget.committedUsd,maxUsd:budget.maxUsd}};
+      budget:{allowance:budget.allowance,requestsUsed:budget.requestsUsed,maxRequests:budget.maxRequests,committedUsd:budget.committedUsd,maxUsd:budget.maxUsd}};
   }
   bindAgentAuthority(session:Session,slot:string,resolver?:AgentResolver){
     if(session.identity.mode!=='kamiwaza')return;

@@ -1,3 +1,4 @@
+import {requestAllowance} from '../budget-presentation';
 import { useEffect, useMemo, useState, type FormEvent } from 'react';
 import { Bot, FileText, ListChecks, MessageSquare, Send, Siren, Wrench, X } from 'lucide-react';
 import { api, errorMessage, type Overview, type Report, type Side, type StaffReply } from '../api';
@@ -446,7 +447,7 @@ function ToolDisclosure({ catalog, error }: { catalog: ToolCatalog | null; error
             </ul>
             <p className="tool-unavailable small">
               Not available: {catalog.unavailable.join(', ')}. Model pulses are capped at {catalog.pulseBudget.maxCompletions} requests and{' '}
-              {catalog.pulseBudget.maxSteps} tool steps. Budget used: {catalog.budget.requestsUsed}/{catalog.budget.maxRequests} requests.
+              {catalog.pulseBudget.maxSteps} tool steps. Budget used: {catalog.budget.requestsUsed}/{requestAllowance(catalog.budget.maxRequests)} requests.
             </p>
           </>
         )}

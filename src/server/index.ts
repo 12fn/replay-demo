@@ -86,7 +86,7 @@ const app=createApp({service,config,native,root,operatorFileImport:process.env.R
   app.get('/api/tomo/status',(_req,res)=>{void tomoBindings.resolve({subject:res.locals.identity.subject,workroomId:res.locals.native?.context.workroomId}).then(bound=>{
    // Mapping readiness only: the file cannot prove helper ownership. Tomo enforces that per member; native authority is checked per operation.
    const conversation=!!tomoModelId&&bound.state==='bound';
-   res.json({enabled:process.env.REPLAY_TOMO_PREVIEW==='true',mode:conversation?'scoped-conversation':'read-only-preview',path:TOMO_PREFIX+'/',modelName:conversation?'REPLAY Tomo capped Luna':null,agentName:conversation?bound.binding.agentName:null,watchCreationEnabled:conversation&&process.env.REPLAY_TOMO_WATCH_HELPER==='true'&&process.env.REPLAY_MCP_WATCH_WRITE==='true',
+   res.json({enabled:process.env.REPLAY_TOMO_PREVIEW==='true',mode:conversation?'scoped-conversation':'read-only-preview',path:TOMO_PREFIX+'/',modelName:conversation?(service.localInference?'Kamiwaza deployed model':'Connected model'):null,agentName:conversation?bound.binding.agentName:null,watchCreationEnabled:conversation&&process.env.REPLAY_TOMO_WATCH_HELPER==='true'&&process.env.REPLAY_MCP_WATCH_WRITE==='true',
     helperBinding:{source:bound.source,state:bound.state,helperOwnershipVerified:false}});
   },()=>res.status(503).json({error:{code:'tomo_status_unavailable',message:'Tomo status could not be read.'}}));});
   mountActionOptionsRoutes(app,service);

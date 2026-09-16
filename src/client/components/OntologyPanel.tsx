@@ -1,3 +1,4 @@
+import {budgetCapReached,budgetUsageText} from '../budget-presentation';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { AlertTriangle, GitBranch, RefreshCw, Share2, UploadCloud } from 'lucide-react';
 import type { ViewContext } from '../App';
@@ -170,7 +171,7 @@ export function OntologyPanel({ ctx, mode = 'platform' }: { ctx: ViewContext; mo
         <Panel title="How this graph is produced" className="onto-tech">
           <ul className="doc-list">
             <li><strong>Native instance.</strong> The workroom's Graphiti + Neo4j instance was created through the platform's own ontology API in the same workroom as this app. REPLAY reads it with the signed ForwardAuth path of the signed-in seat; no proxy URL and no shared credential.</li>
-            <li><strong>Extraction is metered.</strong> Graphiti's language-model calls are routed through REPLAY's internal bridge to the authorized connected model, so every extraction pass lands on the same project ledger and cap as the rest of the app. Bridge calls so far: {data.budget.bridgeRequests} (purpose <span className="mono">{data.budget.bridgePurpose}</span>).</li>
+            <li><strong>Extraction is metered.</strong> Graphiti's language-model calls are routed through REPLAY's internal bridge to the authorized connected model, so every extraction pass lands on the same project ledger and application allowance as the rest of the app. Bridge calls so far: {data.budget.bridgeRequests} (purpose <span className="mono">{data.budget.bridgePurpose}</span>).</li>
             <li><strong>Embeddings are local.</strong> Vector embeddings come from a CPU service in the workroom (384 dimensions; exact model identity retained in technical records). No paid embedding service.</li>
             <li><strong>Service identity.</strong> Graphiti calls the bridge with its own platform-issued workload identity, verified before any request is accepted. A REPLAY session never lends its token to the graph.</li>
             <li><strong>Truthful state.</strong> Health, node and edge counts and request ids are the platform's answers at read time. A platform outage is shown as one; nothing is fabricated.</li>
@@ -411,7 +412,7 @@ function PublishSection({ data, instructor, onDone }: { data: OntologyRead; inst
     );
   }
   const unresolved = data.publish.status === 'uncertain' || data.publish.status === 'pending';
-  const capReached = budget.requestsUsed >= budget.maxRequests || (budget.maxUsd>0 && budget.committedUsd >= budget.maxUsd);
+  const capReached = budgetCapReached(budget);
   const disabled = !data.publish.canPublish || busy || capReached || (unresolved && !ack);
 
   const run = async () => {
@@ -435,7 +436,7 @@ function PublishSection({ data, instructor, onDone }: { data: OntologyRead; inst
   return (
     <Panel
       title={<><UploadCloud size={15} aria-hidden="true" /> Publish the domain ontology</>}
-      aside={<span className="mono small muted" title="Project inference budget shared with the whole app">{fmtUsd(budget.committedUsd)} / {fmtUsd(budget.maxUsd)} · {budget.requestsUsed}/{budget.maxRequests} requests · bridge {budget.bridgeRequests}</span>}
+      aside={<span className="mono small muted" title="Project inference budget shared with the whole app">{budgetUsageText(budget)} · bridge {budget.bridgeRequests}</span>}
     >
       <div className="onto-publish">
         <PublishState data={data} />
@@ -449,8 +450,8 @@ function PublishSection({ data, instructor, onDone }: { data: OntologyRead; inst
           </div>
         ) : (
           <div className="onto-confirm" role="dialog" aria-label="Confirm paid publish">
-            <strong>This is a paid action within the project cap.</strong>
-            <span>REPLAY sends one modelling batch ({data.source.episodeBytes.toLocaleString()} bytes, source {data.source.sourceId}@{data.source.version}) to the workroom Graphiti in group <span className="mono">{data.workroomId?.slice(0, 8)}</span>. Graphiti's extraction calls run through REPLAY's metered bridge and count against the same ledger ({fmtUsd(budget.committedUsd)} of {fmtUsd(budget.maxUsd)} committed, {budget.requestsUsed} of {budget.maxRequests} requests used). No new permission is granted or requested: your native seat must already allow writes and agent runs, and the platform decides.</span>
+            <strong>Publish to the workroom ontology</strong>
+            <span>REPLAY sends one modelling batch ({data.source.episodeBytes.toLocaleString()} bytes, source {data.source.sourceId}@{data.source.version}) to the workroom Graphiti in group <span className="mono">{data.workroomId?.slice(0, 8)}</span>. Graphiti's extraction calls run through REPLAY's metered bridge and count against the same ledger ({budgetUsageText(budget)}). No new permission is granted or requested: your native seat must already allow writes and agent runs, and the platform decides.</span>
             <span>A pending record is written before the call. If the platform does not answer definitively, REPLAY will not retry on its own.</span>
             {unresolved && (
               <label>

@@ -1,3 +1,4 @@
+import type {BudgetLimit, Allowance} from '../inference/allowance';
 /**
  * Ontology routes: the shared workroom domain graph, read and published.
  *
@@ -161,11 +162,11 @@ export interface OntologyReadResponse {
   budget: Budget;
 }
 
-export interface Budget {
+export interface Budget { allowance?: Allowance;
   requestsUsed: number;
-  maxRequests: number;
+  maxRequests: BudgetLimit;
   committedUsd: number;
-  maxUsd: number;
+  maxUsd: BudgetLimit;
   /** Paid calls Graphiti has made through the metered bridge (ledger rows with the bridge purpose). */
   bridgeRequests: number;
   bridgePurpose: string;
@@ -317,7 +318,7 @@ export function mountOntologyRoutes(app: express.Express | express.Router, servi
   const budget = (): Budget => {
     const s = service.ledger.summary();
     const bridgeRequests = service.ledger.listReceipts().filter((r) => r.purpose === GRAPH_DEFAULT_PURPOSE).length;
-    return { requestsUsed: s.requestsUsed, maxRequests: s.maxRequests, committedUsd: s.committedUsd, maxUsd: s.maxUsd, bridgeRequests, bridgePurpose: GRAPH_DEFAULT_PURPOSE };
+    return { allowance:s.allowance,requestsUsed: s.requestsUsed, maxRequests: s.maxRequests, committedUsd: s.committedUsd, maxUsd: s.maxUsd, bridgeRequests, bridgePurpose: GRAPH_DEFAULT_PURPOSE };
   };
 
   // ---- reads ----------------------------------------------------------------

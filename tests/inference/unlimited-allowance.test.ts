@@ -20,7 +20,7 @@ describe('explicit sponsored allowance admission',()=>{
   const d=dir();expect(readModelRoute(d,{})).toMatchObject({maxUsd:5,maxRequests:100});
   expect(readModelRoute(d,{...env,REPLAY_MODEL_ALLOWANCE:undefined})).toMatchObject({maxUsd:5,maxRequests:100});
   expect(readModelRoute(d,{...env,REPLAY_MODEL_ALLOWANCE:undefined,REPLAY_MODEL_BILLING:'local',REPLAY_MODEL_TRANSPORT:'chat-completions',REPLAY_MODEL_BASE_URL:'http://127.0.0.1:9999/v1',REPLAY_MODEL_ID:'local-fixture'})).toMatchObject({maxUsd:0,maxRequests:100,ledgerFile:'local-inference.sqlite'});
-  expect(readModelRoute(d,env)).toMatchObject({sponsored:true,model:'gpt-5.6-sol',maxUsd:'unlimited',maxRequests:'unlimited',ledgerFile:'inference.sqlite',timeoutMs:25000,reasoningEffort:'low',chatReasoningEffort:'low'});
+  expect(readModelRoute(d,env)).toMatchObject({sponsored:true,model:'gpt-5.6-sol',maxUsd:'unlimited',maxRequests:'unlimited',ledgerFile:'inference.sqlite',timeoutMs:60000,reasoningEffort:'low',chatReasoningEffort:'low'});
  });
  it.each([
   {REPLAY_MODEL_CREDENTIAL_MODE:'standard'},{REPLAY_MODEL_CREDENTIAL_MODE:undefined},{REPLAY_MODEL_CREDENTIAL_MODE:'unknown'},

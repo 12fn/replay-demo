@@ -446,7 +446,7 @@ function DebriefSection({ ov, orders, completed, instructor, budget, onOpen }: {
       setLiveBudget(r.budget);
     } catch (e) {
       if (e instanceof LearningApiError && e.status === 422) setRejected({ errors: e.errors, receiptId: e.receiptId });
-      else setErr(errText(e));
+      else setErr(e instanceof LearningApiError && e.receiptId ? `${errText(e)} · Receipt ${e.receiptId}` : errText(e));
     } finally {
       setBusy(false);
     }
@@ -474,7 +474,7 @@ function DebriefSection({ ov, orders, completed, instructor, budget, onOpen }: {
           <p className="muted small">
             {instructor && !ownSelectedOrder ? 'Review the participant’s existing AI debrief here. The participant generates it from their own seat; your corrections are saved separately from the original.' : allowed ? `One request to the ${configuredModelPresentation(ov.platform.inferenceRoute).replace(/^Connected/,'connected')}, cached by exercise, order and evidence hash. Citations and time labels are checked against the record. Unknown citations and mislabeled hindsight are rejected; the interpretation still requires instructor review.` : 'Debriefs are generated after the exercise ends, or by an instructor, so the analysis never steers live play.'}
           </p>
-          {busy && <Busy label="Waiting for the model…" />}
+          {busy && <><Busy label="Waiting for the model…" /><p className="muted small">Leaving this view does not cancel the request or its usage. No retry is sent automatically.</p></>}
           <InlineError message={err} />
           {rejected && (
             <div className="debrief-rejected" role="alert">

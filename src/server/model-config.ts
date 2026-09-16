@@ -34,5 +34,8 @@ export function readModelRoute(dataDir:string,env:NodeJS.ProcessEnv=process.env)
   const file=env.REPLAY_KEY_FILE??path.join(dataDir,'luna.env');
   if(!sponsored&&!key&&fs.existsSync(file)){const m=fs.readFileSync(file,'utf8').match(/^\s*(?:export\s+)?OPENAI_API_KEY\s*=\s*(.+)$/m);if(m)key=m[1].trim().replace(/^['"]|['"]$/g,'');}
   if(sponsored&&!key.trim())throw new TypeError('Sponsored route requires an explicit server OPENAI_API_KEY');
-  return {local:false,baseUrl,model,apiKey:key,sponsored,openaiProject,openaiOrganization,reasoningEffort:effort,chatReasoningEffort:chatEffort,ledgerFile:'inference.sqlite',maxUsd:(unlimited?'unlimited':5) as BudgetLimit,maxRequests:(unlimited?'unlimited':100) as BudgetLimit,timeoutMs:25000};
+  // One bounded request, including response-body reading. A timeout remains uncertain spend;
+  // increasing Sol's observation window never retries it or changes output/usage limits.
+  const timeoutMs=model==='gpt-5.6-sol'?60000:25000;
+  return {local:false,baseUrl,model,apiKey:key,sponsored,openaiProject,openaiOrganization,reasoningEffort:effort,chatReasoningEffort:chatEffort,ledgerFile:'inference.sqlite',maxUsd:(unlimited?'unlimited':5) as BudgetLimit,maxRequests:(unlimited?'unlimited':100) as BudgetLimit,timeoutMs};
 }
